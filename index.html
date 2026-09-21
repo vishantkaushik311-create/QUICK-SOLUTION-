@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop Repair Management - Quick Solutions</title>
+    <!-- Lightweight Offline QR Code Generator Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        :root {
+            --bg-dark: #050a14;
+            --card-bg: #0d1527;
+            --card-border: #1a2942;
+            --text-main: #e2e8f0;
+            --text-sub: #7b8fae;
+            --green-bg: #06231c;
+            --green-text: #00e676;
+            --red-bg: #2a0e14;
+            --red-text: #ff5252;
+            --yellow-bg: #241c08;
+            --yellow-text: #ffca28;
+            --orange-bg: #2b1408;
+            --orange-text: #ff9100;
+            --accent-blue: #0088ff;
+            --accent-glow: #00e1ff;
+            --nav-bg: #08101d;
+            --whatsapp: #25D366;
+        }
+
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { 
+            background-color: var(--bg-dark); 
+            background-image: radial-gradient(circle at 50% 0%, #0d213a 0%, #050a14 70%);
+            color: var(--text-main); 
+            margin: 0; padding: 0; 
+            padding-bottom: 80px; 
+            min-height: 100vh;
+        }
+
+        .app-container { max-width: 1100px; margin: 0 auto; padding: 16px; }
+        .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; flex-wrap: wrap; gap: 8px; }
+        .brand-box { display: flex; align-items: center; gap: 12px; }
+        
+        .logo-wrapper {
+            width: 44px; height: 44px; border-radius: 12px;
+            background: linear-gradient(135deg, #0d1527 0%, #16243d 100%);
+            border: 1.5px solid var(--accent-blue);
+            box-shadow: 0 0 15px rgba(0, 136, 255, 0.4);
+            padding: 4px; display: flex; align-items: center; justify-content: center;
+        }
+        .shop-logo { width: 100%; height: 100%; border-radius: 8px; object-fit: contain; }
+        .brand-box h1 { font-size: 20px; margin: 0; font-weight: 700; color: #fff; text-shadow: 0 0 8px rgba(0, 136, 255, 0.5); }
+        .header-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        
+        .admin-btn {
+            background: linear-gradient(135deg, #0088ff, #00e1ff);
+            border: none; color: #000; font-weight: 700;
+            padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 13px;
+        }
+        .settings-btn {
+            background: var(--card-bg); border: 1px solid var(--card-border);
+            color: var(--text-main); padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 13px;
+        }
+
+        .sub-header { color: var(--text-sub); font-size: 12px; margin-bottom: 16px; margin-left: 56px; }
+
+        .dashboard-grid { 
+            display: grid; grid-template-columns: repeat(2, 1fr); 
+            gap: 10px; margin-bottom: 20px; 
+        }
+        @media (min-width: 768px) { .dashboard-grid { grid-template-columns: repeat(7, 1fr); } }
+        
+        .dash-card {
+            background: var(--card-bg); border: 1px solid var(--card-border);
+            padding: 12px; border-radius: 12px; text-align: center;
+        }
+        .dash-card h4 { margin: 0; font-size: 16px; color: var(--text-main); }
+        .dash-card p { margin: 4px 0 0 0; font-size: 10px; color: var(--text-sub); text-transform: uppercase; }
+
+        .controls-row { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+        .search-box {
+            background-color: var(--card-bg); border: 1px solid var(--card-border);
+            border-radius: 24px; padding: 10px 16px; display: flex; align-items: center; gap: 10px; flex: 1; min-width: 250px;
+        }
+        .search-box input { background: transparent; border: none; outline: none; color: var(--text-main); width: 100%; font-size: 14px; }
+
+        .section-header {
+            display: flex; align-items: center; gap: 10px; margin: 24px 0 12px 0;
+            padding: 10px 14px; background: rgba(13, 21, 39, 0.6); border-radius: 12px; border-left: 4px solid var(--accent-blue);
+        }
+        .section-icon-badge { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+        .section-header.precomplete-header { border-left-color: var(--yellow-text); }
+        .section-header.ready-header { border-left-color: var(--green-text); }
+        .section-header.hold-header { border-left-color: var(--orange-text); }
+        .section-title-text { font-size: 15px; font-weight: 700; color: #fff; flex: 1; margin: 0; }
+        .section-count-badge { background: var(--card-bg); border: 1px solid var(--card-border); padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; color: var(--text-sub); }
+
+        .desktop-table-wrapper { display: none; }
+        .mobile-cards-wrapper { display: block; }
+        @media (min-width: 800px) {
+            .desktop-table-wrapper { display: block; overflow-x: auto; }
+            .mobile-cards-wrapper { display: none; }
+        }
+
+        table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 20px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--card-border); }
+        th { background: var(--card-bg); color: var(--text-sub); }
+        tr.clickable-row { cursor: pointer; }
+        tr.clickable-row:hover { background-color: #121e36; }
+
+        .job-card {
+            background-color: var(--card-bg); border: 1px solid var(--card-border);
+            border-radius: 14px; padding: 14px; margin-bottom: 12px; cursor: pointer;
+        }
+        .job-card.hold-card { border: 1px solid var(--orange-text); background: rgba(43, 20, 8, 0.5); }
+        .job-card.precomplete-card { border: 1px solid var(--yellow-text); background: rgba(36, 28, 8, 0.5); }
+        .job-card.ready-card { border: 1px solid var(--green-text); background: rgba(6, 35, 28, 0.5); }
+        
+        .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+        .job-title { font-size: 15px; font-weight: 700; color: #fff; margin: 0; }
+        .card-badge { font-size: 10px; padding: 3px 8px; border-radius: 6px; font-weight: 600; text-transform: uppercase;}
+        
+        .badge-received { background: #121e36; color: var(--text-sub); border: 1px solid var(--card-border); }
+        .badge-pre-complete { background: var(--yellow-bg); color: var(--yellow-text); border: 1px solid var(--yellow-text); }
+        .badge-repairing { background: var(--yellow-bg); color: var(--yellow-text); border: 1px solid var(--yellow-text); }
+        .badge-hold { background: var(--orange-bg); color: var(--orange-text); border: 1px solid var(--orange-text); }
+        .badge-ready { background: var(--green-bg); color: var(--green-text); border: 1px solid var(--green-text); }
+        .badge-delivered { background: var(--red-bg); color: var(--red-text); border: 1px solid var(--red-text); }
+
+        .overdue-pill {
+            font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 6px;
+            display: inline-flex; align-items: center; gap: 4px; margin-top: 4px;
+        }
+        .overdue-warning { background: var(--yellow-bg); color: var(--yellow-text); border: 1px solid var(--yellow-text); }
+        .overdue-danger { background: var(--red-bg); color: var(--red-text); border: 1px solid var(--red-text); }
+
+        .detail-line { font-size: 13px; color: var(--text-main); margin: 4px 0; }
+        .detail-line span { font-weight: 600; color: #fff; }
+        .detail-sub { font-size: 12px; color: var(--text-sub); margin-top: 4px; }
+
+        .card-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+        .btn-act { padding: 6px 12px; border-radius: 6px; font-size: 11px; border: none; cursor: pointer; font-weight: 600; }
+        .btn-edit { background: #16243d; color: #fff; border: 1px solid var(--card-border); }
+        .btn-qr { background: var(--accent-blue); color: #fff; }
+        .btn-wa { background: var(--whatsapp); color: #000; }
+        .btn-print { background: #1a2942; color: #fff; }
+        .btn-delete { background: var(--red-bg); color: var(--red-text); border: 1px solid var(--red-text); }
+
+        .add-btn {
+            position: fixed; bottom: 75px; right: 20px;
+            width: 52px; height: 52px; border-radius: 26px;
+            background-color: var(--accent-blue); color: white; border: none;
+            font-size: 26px; cursor: pointer; box-shadow: 0 4px 20px rgba(0, 136, 255, 0.5);
+            z-index: 10;
+        }
+
+        .custom-qr-float-btn {
+            position: fixed; bottom: 140px; right: 20px;
+            width: 52px; height: 52px; border-radius: 26px;
+            background: linear-gradient(135deg, #00e1ff 0%, #0088ff 100%);
+            color: #000; border: none; font-size: 24px; cursor: pointer;
+            box-shadow: 0 4px 20px rgba(0, 225, 255, 0.6); z-index: 10;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .modal {
+            display: none; position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(2, 6, 12, 0.85); z-index: 100;
+            justify-content: center; align-items: center;
+            backdrop-filter: blur(4px);
+        }
+        .modal-content {
+            background: var(--card-bg); border: 1px solid var(--accent-blue);
+            padding: 20px; border-radius: 16px;
+            width: 90%; max-width: 480px; max-height: 90vh; overflow-y: auto;
+        }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 4px; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 10px; background: var(--bg-dark); border: 1px solid var(--card-border);
+            color: #fff; border-radius: 8px; outline: none; box-sizing: border-box;
+        }
+        .form-row { display: flex; gap: 10px; }
+
+        .checkbox-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+        .chip-label {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: #050a14; border: 1px solid var(--card-border);
+            padding: 6px 10px; border-radius: 8px; font-size: 11px; cursor: pointer; color: var(--text-main);
+        }
+        .chip-label input { accent-color: var(--accent-blue); }
+
+        .condition-photos-strip {
+            display: flex; gap: 8px; overflow-x: auto; padding: 6px 0; margin-top: 6px;
+        }
+        .condition-photo-thumb {
+            width: 75px; height: 75px; border-radius: 8px; object-fit: cover;
+            border: 1px solid var(--accent-blue); cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+
+        .info-card { background: var(--bg-dark); border-radius: 10px; padding: 12px; margin-bottom: 10px; border: 1px solid var(--card-border); }
+        .info-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; }
+        .info-label { color: var(--text-sub); }
+        .info-val { font-weight: 600; color: #fff; }
+
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            height: 60px; background-color: var(--nav-bg); border-top: 1px solid var(--card-border);
+            display: flex; justify-content: space-around; align-items: center; z-index: 50;
+        }
+        .nav-item { display: flex; flex-direction: column; align-items: center; font-size: 10px; color: var(--text-sub); cursor: pointer; }
+        .nav-item.active { color: var(--accent-glow); background-color: #121e36; padding: 6px 14px; border-radius: 16px; border: 1px solid var(--card-border); }
+
+        .qr-card-container {
+            position: relative; display: inline-flex; padding: 12px; background: #ffffff;
+            border-radius: 16px; margin: 10px 0; min-width: 214px; min-height: 214px;
+            align-items: center; justify-content: center;
+        }
+        .qr-expired-overlay {
+            display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(5, 10, 20, 0.94); border-radius: 16px;
+            flex-direction: column; align-items: center; justify-content: center; padding: 15px; z-index: 5;
+        }
+
+        .timer-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(255, 202, 40, 0.15); border: 1px solid var(--yellow-text);
+            color: var(--yellow-text); padding: 4px 12px; border-radius: 14px; font-size: 12px; font-weight: 700;
+        }
+
+        .amount-quick-adjust { display: flex; gap: 6px; justify-content: center; margin: 10px 0; flex-wrap: wrap; }
+        .adj-btn { background: #121e36; border: 1px solid var(--card-border); color: #fff; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 12px; }
+
+        .price-item-card {
+            background-color: var(--card-bg); border: 1px solid var(--card-border);
+            border-radius: 12px; padding: 14px; margin-bottom: 10px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .price-cat-badge {
+            font-size: 10px; background: rgba(0, 136, 255, 0.15); border: 1px solid var(--accent-blue);
+            color: var(--accent-glow); padding: 2px 8px; border-radius: 6px; display: inline-block; margin-bottom: 4px;
+        }
+
+        #printFrame { display: none; position: absolute; width: 0; height: 0; border: none; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="top-header">
+        <div class="brand-box">
+            <div class="logo-wrapper">
+                <img id="shopLogoImg" class="shop-logo" src="https://cdn-icons-png.flaticon.com/512/2933/2933245.png" alt="Logo">
+            </div>
+            <h1 id="displayShopTitle">Quick Solutions</h1>
+        </div>
+        <div class="header-actions">
+            <button class="settings-btn" onclick="exportToCSV()" style="border-color:var(--accent-glow); color:var(--accent-glow);">📊 Excel Export</button>
+            <button class="settings-btn" onclick="openCashbookModal()" style="border-color:var(--green-text); color:var(--green-text);">💵 Cashbook</button>
+            <button class="admin-btn" onclick="openAdminModal()">👑 Admin</button>
+            <button class="settings-btn" onclick="exportData()">💾 Backup</button>
+            <button class="settings-btn" onclick="openSettings()">⚙️ Settings</button>
+        </div>
+    </div>
+    <div class="sub-header" id="subHeaderTitle">Inward Repairs & Service Center</div>
+
+    <!-- MAIN REPAIRS VIEW -->
+    <div id="inwardViewSection">
+        <div class="dashboard-grid">
+            <div class="dash-card"><h4 id="dTotal">0</h4><p>Total Jobs</p></div>
+            <div class="dash-card"><h4 id="dRevenue" style="color:var(--accent-glow)">₹0</h4><p>Total Revenue</p></div>
+            <div class="dash-card"><h4 id="dPreComplete" style="color:var(--yellow-text)">0</h4><p>Pre-Complete</p></div>
+            <div class="dash-card"><h4 id="dPending" style="color:var(--yellow-text)">0</h4><p>Pending</p></div>
+            <div class="dash-card"><h4 id="dReady" style="color:var(--green-text)">0</h4><p>Ready</p></div>
+            <div class="dash-card"><h4 id="dDelivered" style="color:var(--accent-glow)">0</h4><p>Delivered</p></div>
+            <div class="dash-card"><h4 id="dBalance" style="color:var(--red-text)">₹0</h4><p>Due Balance</p></div>
+        </div>
+
+        <div class="controls-row">
+            <div class="search-box">
+                <span>🔍</span>
+                <input type="text" id="searchInput" placeholder="Search job no, customer, device..." onkeyup="renderAll()">
+            </div>
+        </div>
+
+        <!-- Pre-Complete Section -->
+        <div id="precompleteSection" style="display: none;">
+            <div class="section-header precomplete-header">
+                <div class="section-icon-badge">⚡</div>
+                <h3 class="section-title-text">Pre-Complete Jobs</h3>
+                <span class="section-count-badge" id="precompleteCount">0</span>
+            </div>
+            <div class="mobile-cards-wrapper" id="precompleteCardsContainer"></div>
+            <div class="desktop-table-wrapper">
+                <table>
+                    <thead><tr><th>Job No</th><th>Customer Name</th><th>Device</th><th>Problem</th><th>Status</th><th>Balance</th><th>Actions</th></tr></thead>
+                    <tbody id="precompleteTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Active Jobs Section -->
+        <div class="section-header active-header">
+            <div class="section-icon-badge">🛠️</div>
+            <h3 class="section-title-text">Active Jobs</h3>
+        </div>
+        <div class="mobile-cards-wrapper" id="mobileCardsContainer"></div>
+        <div class="desktop-table-wrapper">
+            <table>
+                <thead><tr><th>Job No</th><th>Customer Name</th><th>Device</th><th>Problem</th><th>Status</th><th>Balance</th><th>Actions</th></tr></thead>
+                <tbody id="desktopTableBody"></tbody>
+            </table>
+        </div>
+
+        <!-- Ready For Delivery Section -->
+        <div id="readySection" style="display: none;">
+            <div class="section-header ready-header">
+                <div class="section-icon-badge">🎉</div>
+                <h3 class="section-title-text">Ready For Delivery</h3>
+                <span class="section-count-badge" id="readyCount">0</span>
+            </div>
+            <div class="mobile-cards-wrapper" id="readyCardsContainer"></div>
+            <div class="desktop-table-wrapper">
+                <table>
+                    <thead><tr><th>Job No</th><th>Customer Name</th><th>Device</th><th>Ready Status</th><th>Balance</th><th>Actions</th></tr></thead>
+                    <tbody id="readyTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Hold Jobs Section -->
+        <div id="holdSection" style="display: none;">
+            <div class="section-header hold-header">
+                <div class="section-icon-badge">⏸️</div>
+                <h3 class="section-title-text">Hold Jobs</h3>
+                <span class="section-count-badge" id="holdCount">0</span>
+            </div>
+            <div class="mobile-cards-wrapper" id="holdCardsContainer"></div>
+            <div class="desktop-table-wrapper">
+                <table>
+                    <thead><tr><th>Job No</th><th>Customer Name</th><th>Device</th><th>Problem</th><th>Status</th><th>Balance</th><th>Actions</th></tr></thead>
+                    <tbody id="holdTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- PRICE LIST VIEW -->
+    <div id="priceListViewSection" style="display: none;">
+        <div class="controls-row">
+            <div class="search-box">
+                <span>🔍</span>
+                <input type="text" id="searchPriceInput" placeholder="Search service, spare part, model..." onkeyup="renderPriceList()">
+            </div>
+            <button onclick="openPriceModal()" class="admin-btn" style="padding: 10px 18px; font-size: 13px;">+ Add Item</button>
+        </div>
+        <div class="section-header active-header">
+            <div class="section-icon-badge">📋</div>
+            <h3 class="section-title-text">Service & Spare Parts Rate List</h3>
+            <span class="section-count-badge" id="priceItemCount">0</span>
+        </div>
+        <div id="priceListContainer"></div>
+    </div>
+
+    <!-- DEALERS SOURCING VIEW -->
+    <div id="dealerViewSection" style="display: none;">
+        <div class="controls-row">
+            <button onclick="openInquiryModal()" class="admin-btn" style="flex:1; padding: 12px; font-size: 13px; background: linear-gradient(135deg, #00e676, #0088ff); color:#000;">📸 Send Requirement to Dealer</button>
+            <button onclick="openCompareRatesModal()" class="settings-btn" style="flex:1; padding: 12px; font-size: 13px; border-color: var(--yellow-text); color: var(--yellow-text);">⚡ Compare Rates (Best Price)</button>
+            <button onclick="openAddDealerModal()" class="settings-btn" style="padding: 12px 16px; font-size: 13px;">+ Add Dealer</button>
+        </div>
+        <div class="section-header active-header">
+            <div class="section-icon-badge">🤝</div>
+            <h3 class="section-title-text">Registered Spare Part Dealers</h3>
+            <span class="section-count-badge" id="dealerCountBadge">0</span>
+        </div>
+        <div id="dealersListContainer"></div>
+    </div>
+</div>
+
+<!-- FLOATING BUTTONS -->
+<button class="custom-qr-float-btn" onclick="openCustomQRModal()" title="Instant Custom Payment QR">⚡</button>
+<button class="add-btn" id="floatingAddBtn" onclick="handleFloatingAdd()">+</button>
+
+<!-- Cashbook Modal -->
+<div class="modal" id="cashbookModal">
+    <div class="modal-content">
+        <h3 style="margin-top:0; color:#fff;">💵 Daily Cash & Expense Register</h3>
+        <div style="display:flex; gap:10px; margin-bottom:12px;">
+            <div class="dash-card" style="flex:1;"><h4 id="cbCashIn" style="color:var(--green-text);">₹0</h4><p>Cash In</p></div>
+            <div class="dash-card" style="flex:1;"><h4 id="cbCashOut" style="color:var(--red-text);">₹0</h4><p>Cash Out</p></div>
+            <div class="dash-card" style="flex:1;"><h4 id="cbNetCash" style="color:var(--accent-glow);">₹0</h4><p>Net Hand</p></div>
+        </div>
+
+        <form id="cashEntryForm" onsubmit="saveCashEntry(event)" style="background:#050a14; padding:12px; border-radius:10px; border:1px solid var(--card-border); margin-bottom:12px;">
+            <div class="form-row">
+                <div class="form-group" style="flex:1;">
+                    <label>Type</label>
+                    <select id="cbType">
+                        <option value="IN">Cash In (Advance/Due)</option>
+                        <option value="OUT">Cash Out (Expense/Parts)</option>
+                    </select>
+                </div>
+                <div class="form-group" style="flex:1;"><label>Amount (₹)</label><input type="number" id="cbAmount" required placeholder="₹"></div>
+            </div>
+            <div class="form-group"><label>Details / Reason</label><input type="text" id="cbDesc" required placeholder="e.g. Courier charges or Screen purchase"></div>
+            <button type="submit" class="admin-btn" style="width:100%;">+ Add Cash Entry</button>
+        </form>
+
+        <div style="max-height:160px; overflow-y:auto;" id="cashbookEntriesList"></div>
+        <button onclick="document.getElementById('cashbookModal').style.display='none'" style="width:100%; margin-top:10px; padding:8px; background:#16243d; border:1px solid var(--card-border); color:#fff; border-radius:6px; cursor:pointer;">Close</button>
+    </div>
+</div>
+
+<!-- Entry Modal (Job Card) -->
+<div class="modal" id="entryModal">
+    <div class="modal-content">
+        <h3 style="margin-top:0; color:#fff;" id="modalTitle">New Repair Job</h3>
+        <form id="jobForm" onsubmit="saveJob(event)">
+            <div class="form-group"><label>Job Card No *</label><input type="text" id="jobNo" required readonly style="color:var(--accent-glow); font-weight:bold;"></div>
+            <div class="form-group"><label>Customer Name *</label><input type="text" id="custName" required placeholder="Customer Name"></div>
+            <div class="form-group"><label>Mobile Number *</label><input type="tel" id="custMobile" required placeholder="Mobile No."></div>
+            <div class="form-group"><label>Device Model *</label><input type="text" id="deviceModel" required placeholder="e.g. HP EliteBook 840 G1"></div>
+            
+            <div class="form-group">
+                <label>Received Accessories</label>
+                <div class="checkbox-chips">
+                    <label class="chip-label"><input type="checkbox" id="chkAdapter"> Adapter/Charger</label>
+                    <label class="chip-label"><input type="checkbox" id="chkBag"> Bag/Sleeve</label>
+                    <label class="chip-label"><input type="checkbox" id="chkBattery"> Battery</label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label style="color:var(--accent-glow);">📸 Device Physical Condition (Click/Upload Photos Proof)</label>
+                <input type="file" id="conditionPhotosInput" accept="image/*" multiple capture="environment" onchange="handleConditionPhotos(event)">
+                <div class="condition-photos-strip" id="formPhotosPreviewStrip"></div>
+            </div>
+
+            <div class="form-group"><label>Problem Description</label><textarea id="problem" rows="2" placeholder="Customer reported fault..."></textarea></div>
+            
+            <div class="form-group">
+                <label style="color:var(--accent-glow);">🔬 Technician Diagnosis Notes (Hidden from Bill)</label>
+                <input type="text" id="techNotes" placeholder="e.g. Motherboard DA0X8BMB6F0, 3V Standby IC heating">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group" style="flex:1;"><label>Estimate (₹)</label><input type="number" id="estimate" value="0" oninput="calcBalance()"></div>
+                <div class="form-group" style="flex:1;"><label>Advance (₹)</label><input type="number" id="advance" value="0" oninput="calcBalance()"></div>
+            </div>
+            <div class="form-group"><label>Balance Due (₹)</label><input type="number" id="balance" value="0" readonly style="color:var(--red-text); font-weight:bold;"></div>
+            <div class="form-group">
+                <label>Status</label>
+                <select id="status">
+                    <option value="Received">Received</option>
+                    <option value="Pre-complete">Pre-complete</option>
+                    <option value="Repairing">Repairing</option>
+                    <option value="Ready">Ready</option>
+                    <option value="Hold">Hold</option>
+                    <option value="Delivered">Delivered</option>
+                </select>
+            </div>
+            <div style="display:flex; gap:10px; margin-top:15px;">
+                <button type="button" onclick="closeModal()" style="flex:1; padding:10px; background:#16243d; border:1px solid var(--card-border); color:#fff; border-radius:8px;">Cancel</button>
+                <button type="submit" style="flex:1; padding:10px; background:var(--accent-blue); border:none; color:#fff; border-radius:8px; font-weight:bold;">Save Job</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal" id="viewDetailModal">
+    <div class="modal-content">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h3 style="margin:0; color:#fff;" id="vJobNo">#101</h3>
+            <span id="vStatusBadge" class="card-badge">Status</span>
+        </div>
+        <div class="info-card">
+            <div class="info-row"><span class="info-label">Customer Name:</span><span class="info-val" id="vName"></span></div>
+            <div class="info-row"><span class="info-label">Mobile Number:</span><span class="info-val" id="vMobile"></span></div>
+            <div class="info-row"><span class="info-label">Device Model:</span><span class="info-val" id="vDevice"></span></div>
+            <div class="info-row"><span class="info-label">Accessories:</span><span class="info-val" id="vChecklist"></span></div>
+        </div>
+
+        <div class="info-card" id="vPhotosCard">
+            <div class="info-label" style="margin-bottom:4px; color:var(--accent-glow);">📸 Device Condition Photos at Receiving:</div>
+            <div class="condition-photos-strip" id="vPhotosGallery"></div>
+        </div>
+
+        <div class="info-card">
+            <div class="info-label" style="margin-bottom:4px;">Problem Details:</div>
+            <div class="info-val" id="vProblem" style="font-size:13px; font-weight:normal;"></div>
+        </div>
+        <div class="info-card" id="vTechNoteCard" style="border-color:var(--accent-blue); background:rgba(0,136,255,0.05);">
+            <div class="info-label" style="color:var(--accent-glow); margin-bottom:4px;">🔬 Technician Diagnosis Note:</div>
+            <div class="info-val" id="vTechNote" style="font-size:13px; font-weight:normal; color:#fff;"></div>
+        </div>
+        <div class="info-card">
+            <div class="info-row"><span class="info-label">Estimate Amount:</span><span class="info-val" id="vEstimate">₹0</span></div>
+            <div class="info-row"><span class="info-label">Advance Paid:</span><span class="info-val" id="vAdvance" style="color:var(--green-text)">₹0</span></div>
+            <div class="info-row" style="margin-bottom:0;"><span class="info-label">Balance Due:</span><span class="info-val" id="vBalance" style="color:var(--red-text); font-size:15px;">₹0</span></div>
+        </div>
+        <div class="card-actions" style="margin-top:15px; justify-content: space-between;">
+            <a id="vCallBtn" href="#" class="btn-act btn-edit" style="text-decoration:none; text-align:center; flex:1;">📞 Call</a>
+            <button class="btn-act btn-wa" id="vWaBtn" style="flex:1;">WhatsApp</button>
+            <button class="btn-act btn-qr" id="vQrBtn" style="flex:1;">Pay QR</button>
+        </div>
+        <div style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap;">
+            <button class="btn-act btn-print" id="vPrintBtn" style="flex:1; padding:8px;">🖨️ Print Invoice</button>
+            <button class="btn-act btn-qr" id="vPrintStickerBtn" style="flex:1; padding:8px; background:#00e1ff; color:#000;">🏷️ Print Sticker</button>
+            <button class="btn-act btn-edit" id="vEditBtn" style="flex:1; padding:8px;">✏️ Edit</button>
+            <button class="btn-act btn-delete" id="vDeleteBtn" style="flex:1; padding:8px;">🗑️ Delete</button>
+        </div>
+        <button onclick="document.getElementById('viewDetailModal').style.display='none'" style="width:100%; margin-top:10px; padding:8px; background:#16243d; border:1px solid var(--card-border); color:#fff; border-radius:6px; cursor:pointer;">Close</button>
+    </div>
+</div>
+
+<!-- Full Image Viewer Modal -->
+<div class="modal" id="imageViewerModal" onclick="this.style.display='none'">
+    <div style="max-width:90%; max-height:90%;">
+        <img id="imageViewerImg" src="" style="width:100%; height:auto; max-height:85vh; border-radius:12px; border:2px solid var(--accent-blue);">
+    </div>
+</div>
+
+<!-- Custom Adjustable Payment QR Modal -->
+<div class="modal" id="customPayModal">
+    <div class="modal-content" style="text-align: center;">
+        <span style="background: linear-gradient(135deg, #0088ff 0%, #00e1ff 100%); color: #000; font-weight: 800; font-size: 11px; padding: 4px 12px; border-radius: 20px; text-transform: uppercase;">⚡ Offline Instant UPI QR</span>
+        <h3 style="margin: 8px 0 4px 0; color: #fff; font-size: 17px;">Enter Payment Amount</h3>
+        
+        <div style="margin: 10px 0;">
+            <input type="number" id="customAmountInput" value="500" min="1" oninput="onCustomAmountChange()" style="font-size: 26px; font-weight: 800; color: var(--accent-glow); text-align: center; background: #050a14; border: 1.5px solid var(--accent-blue); border-radius: 12px; padding: 8px; width: 180px; outline: none;">
+        </div>
+
+        <div class="amount-quick-adjust">
+            <button class="adj-btn" onclick="adjustCustomAmount(-500)">-500</button>
+            <button class="adj-btn" onclick="adjustCustomAmount(-100)">-100</button>
+            <button class="adj-btn" onclick="adjustCustomAmount(100)">+100</button>
+            <button class="adj-btn" onclick="adjustCustomAmount(500)">+500</button>
+            <button class="adj-btn" onclick="adjustCustomAmount(1000)">+1000</button>
+        </div>
+
+        <div>
+            <span class="timer-badge" id="customTimerBadge">
+                ⏱️ Expires in: <strong id="customQrCountdown">02:00</strong>
+            </span>
+        </div>
+
+        <div class="qr-card-container">
+            <div id="customQRElement"></div>
+            <div id="customQrExpiredOverlay" class="qr-expired-overlay">
+                <span style="font-size: 32px; margin-bottom: 4px;">⚠️</span>
+                <strong style="color: var(--red-text); font-size: 15px; margin-bottom: 4px;">QR Code Expired</strong>
+                <p style="font-size: 11px; color: var(--text-sub); margin: 0 0 12px 0;">2-minute payment window closed</p>
+                <button onclick="startCustomQRTimer()" class="btn-act btn-qr" style="padding: 8px 16px; font-size: 12px;">🔄 Regenerate QR</button>
+            </div>
+        </div>
+
+        <p style="font-size:12px; color:var(--text-sub); margin: 5px 0 15px 0;">Scan with PhonePe, Paytm, Google Pay or BHIM</p>
+        <button class="btn-act btn-delete" style="width:100%" onclick="closeCustomQRModal()">CLOSE</button>
+    </div>
+</div>
+
+<!-- Standard Job QR Modal -->
+<div class="modal" id="qrModal">
+    <div class="modal-content" style="text-align: center;">
+        <span style="background: linear-gradient(135deg, #0088ff 0%, #00e1ff 100%); color: #000; font-weight: 800; font-size: 11px; padding: 4px 12px; border-radius: 20px; text-transform: uppercase;">⚡ Offline Instant UPI Pay</span>
+        <h3 style="margin: 10px 0 3px 0; color: #fff; font-size: 18px;" id="qrCustName">Customer Payment</h3>
+        <div style="font-size: 26px; font-weight: 800; color: var(--accent-glow); margin: 2px 0 6px 0;" id="qrAmount">₹0</div>
+        
+        <div>
+            <span class="timer-badge" id="qrTimerBadge">
+                ⏱️ Expires in: <strong id="qrCountdown">02:00</strong>
+            </span>
+        </div>
+
+        <div class="qr-card-container">
+            <div id="standardQRElement"></div>
+            <div id="qrExpiredOverlay" class="qr-expired-overlay">
+                <span style="font-size: 32px; margin-bottom: 4px;">⚠️</span>
+                <strong style="color: var(--red-text); font-size: 15px; margin-bottom: 4px;">QR Code Expired</strong>
+                <p style="font-size: 11px; color: var(--text-sub); margin: 0 0 12px 0;">2-minute payment window closed</p>
+                <button onclick="regenerateCurrentQR()" class="btn-act btn-qr" style="padding: 8px 16px; font-size: 12px;">🔄 Regenerate QR</button>
+            </div>
+        </div>
+
+        <p style="font-size:12px; color:var(--text-sub); margin: 5px 0 15px 0;">Scan with PhonePe, Paytm, Google Pay or BHIM</p>
+        <button class="btn-act btn-delete" style="width:100%" onclick="closeQRModal()">CLOSE</button>
+    </div>
+</div>
+
+<!-- Invisible Print Iframe -->
+<iframe id="printFrame"></iframe>
+
+<!-- Navigation Bar -->
+<div class="bottom-nav">
+    <div onclick="quickCallAction()" class="nav-item"><span style="font-size:16px;">📞</span><span>Calls</span></div>
+    <div id="navInward" onclick="switchNavTab('inward')" class="nav-item active"><span style="font-size:16px;">🔧</span><span>Inward</span></div>
+    <div id="navDealers" onclick="switchNavTab('dealers')" class="nav-item"><span style="font-size:16px;">🤝</span><span>Dealers</span></div>
+    <div id="navPricelist" onclick="switchNavTab('pricelist')" class="nav-item"><span style="font-size:16px;">📋</span><span>Pricelist</span></div>
+</div>
+
+<script>
+    let shopConfig = {
+        name: "Quick Solutions",
+        phone: "7838544106",
+        upi: "7838544106@paytm",
+        logo: "https://cdn-icons-png.flaticon.com/512/2933/2933245.png",
+        adminPin: "1234"
+    };
+
+    function loadRecoveredJobs() {
+        let keys = ['qs_inward_db', 'srm_jobs', 'jobs', 'repair_jobs', 'quick_solutions_jobs', 'qs_job_store', 'repair_jobs_store'];
+        let combined = [];
+        let seenIds = new Set();
+
+        for (let k of keys) {
+            let data = localStorage.getItem(k);
+            if (!data) continue;
+            try {
+                let parsed = JSON.parse(data);
+                if (!Array.isArray(parsed)) continue;
+                parsed.forEach(item => {
+                    if (!item || typeof item !== 'object') return;
+                    let uniqueKey = item.id || (item.jobNo + "_" + (item.custName || ''));
+                    if (seenIds.has(uniqueKey)) return;
+                    seenIds.add(uniqueKey);
+                    combined.push({
+                        id: item.id || Date.now() + Math.random(),
+                        jobNo: item.jobNo || ('#' + (combined.length + 101)),
+                        custName: item.custName || 'Unknown',
+                        custMobile: item.custMobile || '',
+                        deviceModel: item.deviceModel || 'Device',
+                        problem: item.problem || '',
+                        techNotes: item.techNotes || '',
+                        checklist: item.checklist || [],
+                        photos: item.photos || [],
+                        estimate: parseFloat(item.estimate) || 0,
+                        advance: parseFloat(item.advance) || 0,
+                        balance: parseFloat(item.balance) || 0,
+                        status: item.status || 'Received',
+                        date: item.date || new Date().toLocaleDateString('en-IN'),
+                        readyDate: item.readyDate || (item.status === 'Ready' ? Date.now() : null)
+                    });
+                });
+            } catch(e) {}
+        }
+        return combined;
+    }
+
+    let defaultPriceList = [
+        { id: 1, name: "15.6 LED Slim Display 30 Pin", category: "Screen / Display", price: 3200, note: "3 Months Warranty" },
+        { id: 2, name: "Laptop Motherboard Dead Diagnosis & Repair", category: "Motherboard / IC", price: 1800, note: "Component Level Service" }
+    ];
+
+    let defaultDealers = [
+        { id: 1, name: "Nehru Place Screens & Spares", phone: "9876543210", category: "Laptop Screens & Keyboards" }
+    ];
+
+    let jobs = loadRecoveredJobs();
+    let priceItems = JSON.parse(localStorage.getItem('qs_price_db') || JSON.stringify(defaultPriceList));
+    let dealers = JSON.parse(localStorage.getItem('qs_dealers_db') || JSON.stringify(defaultDealers));
+    let cashEntries = JSON.parse(localStorage.getItem('qs_cashbook_db') || '[]');
+
+    let currentTab = 'inward';
+    let currentEditId = null;
+    let tempUploadedPhotos = [];
+
+    // QR Timers
+    let qrTimerInterval = null;
+    let qrTimeLeft = 120;
+    let activeQRJob = null;
+
+    let customQrTimerInterval = null;
+    let customQrTimeLeft = 120;
+
+    async function checkForHostedUpdate() {
+        const updateManifestUrl = 'https://vishantkaushik311-create.github.io/QUICK-SOLUTION-/version.json?t=' + Date.now();
+        try {
+            const response = await fetch(updateManifestUrl, { cache: 'no-store' });
+            if (!response.ok) return;
+            const manifest = await response.json();
+            const currentVersion = '1.0.0';
+            if (manifest.version && manifest.version !== currentVersion && confirm(`New update ${manifest.version} available. Update now?`)) {
+                window.location.replace('https://vishantkaushik311-create.github.io/QUICK-SOLUTION-/?v=' + encodeURIComponent(manifest.version));
+            }
+        } catch (error) {
+            console.warn('Update check failed:', error);
+        }
+    }
+
+    function initApp() {
+        try {
+            const savedConfig = localStorage.getItem('qs_shop_config');
+            if (savedConfig) shopConfig = { ...shopConfig, ...JSON.parse(savedConfig) };
+        } catch(e) {}
+        saveAllData();
+        updateShopInfoDisplay();
+        renderAll();
+        checkForHostedUpdate();
+    }
+
+    function saveAllData() {
+        const jobBackup = JSON.stringify(jobs);
+        const priceBackup = JSON.stringify(priceItems);
+        const dealerBackup = JSON.stringify(dealers);
+        const cashBackup = JSON.stringify(cashEntries);
+
+        localStorage.setItem('qs_inward_db', jobBackup);
+        localStorage.setItem('srm_jobs', jobBackup);
+        localStorage.setItem('jobs', jobBackup);
+        localStorage.setItem('repair_jobs', jobBackup);
+        localStorage.setItem('quick_solutions_jobs', jobBackup);
+
+        localStorage.setItem('qs_price_db', priceBackup);
+        localStorage.setItem('qs_dealers_db', dealerBackup);
+        localStorage.setItem('qs_cashbook_db', cashBackup);
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initApp);
+    else initApp();
+
+    function updateShopInfoDisplay() {
+        document.getElementById('displayShopTitle').innerText = shopConfig.name || "Quick Solutions";
+        const logoImg = document.getElementById('shopLogoImg');
+        const defaultLogo = "https://cdn-icons-png.flaticon.com/512/2933/2933245.png";
+        logoImg.onerror = function() { this.src = defaultLogo; };
+        logoImg.src = (shopConfig.logo && shopConfig.logo.trim() !== "") ? shopConfig.logo : defaultLogo;
+    }
+
+    function switchNavTab(tab) {
+        currentTab = tab;
+        document.getElementById('inwardViewSection').style.display = (tab === 'inward') ? 'block' : 'none';
+        document.getElementById('priceListViewSection').style.display = (tab === 'pricelist') ? 'block' : 'none';
+        document.getElementById('dealerViewSection').style.display = (tab === 'dealers') ? 'block' : 'none';
+        document.getElementById('navInward').className = `nav-item ${tab === 'inward' ? 'active' : ''}`;
+        document.getElementById('navPricelist').className = `nav-item ${tab === 'pricelist' ? 'active' : ''}`;
+        document.getElementById('navDealers').className = `nav-item ${tab === 'dealers' ? 'active' : ''}`;
+    }
+
+    // --- 1-CLICK EXCEL / CSV EXPORT ---
+    function exportToCSV() {
+        if (!jobs || jobs.length === 0) return alert("Export karne ke liye koi repair jobs data nahi hai!");
+        const headers = ["Job No", "Date", "Customer Name", "Mobile Number", "Device Model", "Reported Problem", "Technician Notes", "Estimate Amount", "Advance Paid", "Balance Due", "Status"];
+        const rows = jobs.map(j => [
+            `"${(j.jobNo || '').replace(/"/g, '""')}"`,
+            `"${(j.date || '').replace(/"/g, '""')}"`,
+            `"${(j.custName || '').replace(/"/g, '""')}"`,
+            `"${(j.custMobile || '').replace(/"/g, '""')}"`,
+            `"${(j.deviceModel || '').replace(/"/g, '""')}"`,
+            `"${(j.problem || '').replace(/"/g, '""')}"`,
+            `"${(j.techNotes || '').replace(/"/g, '""')}"`,
+            j.estimate || 0, j.advance || 0, j.balance || 0,
+            `"${(j.status || '').replace(/"/g, '""')}"`
+        ]);
+        const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(r => r.join(","))].join("\r\n");
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `Quick_Solutions_Report_${new Date().toISOString().slice(0, 10)}.csv`);
+        document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    }
+
+    // --- OFFLINE JS QR CODE GENERATOR FUNCTIONS ---
+    function generateOfflineQR(elementId, textData) {
+        const container = document.getElementById(elementId);
+        container.innerHTML = ""; 
+        new QRCode(container, {
+            text: textData,
+            width: 180,
+            height: 180,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.M
+        });
+    }
+
+    function openCustomQRModal() {
+        if (!shopConfig.upi) return alert("Please configure UPI ID in Settings!");
+        document.getElementById('customPayModal').style.display = 'flex';
+        startCustomQRTimer();
+    }
+
+    function closeCustomQRModal() {
+        if (customQrTimerInterval) clearInterval(customQrTimerInterval);
+        document.getElementById('customPayModal').style.display = 'none';
+    }
+
+    function adjustCustomAmount(diff) {
+        const input = document.getElementById('customAmountInput');
+        let current = parseFloat(input.value) || 0;
+        current = Math.max(1, current + diff);
+        input.value = current;
+        startCustomQRTimer();
+    }
+
+    function onCustomAmountChange() {
+        startCustomQRTimer();
+    }
+
+    function startCustomQRTimer() {
+        if (customQrTimerInterval) clearInterval(customQrTimerInterval);
+        customQrTimeLeft = 120;
+        document.getElementById('customQrExpiredOverlay').style.display = 'none';
+
+        const amount = parseFloat(document.getElementById('customAmountInput').value) || 1;
+        const upiUrl = `upi://pay?pa=${encodeURIComponent(shopConfig.upi)}&pn=${encodeURIComponent(shopConfig.name)}&am=${amount}&cu=INR&tr=${Date.now()}`;
+        
+        generateOfflineQR("customQRElement", upiUrl);
+        updateCustomTimerDisplay();
+
+        customQrTimerInterval = setInterval(() => {
+            customQrTimeLeft--;
+            updateCustomTimerDisplay();
+            if (customQrTimeLeft <= 0) {
+                clearInterval(customQrTimerInterval);
+                document.getElementById('customQrExpiredOverlay').style.display = 'flex';
+                document.getElementById('customQrCountdown').innerText = "00:00";
+            }
+        }, 1000);
+    }
+
+    function updateCustomTimerDisplay() {
+        const minutes = Math.floor(customQrTimeLeft / 60);
+        const seconds = customQrTimeLeft % 60;
+        document.getElementById('customQrCountdown').innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    function showQR(jobOrId) {
+        const job = typeof jobOrId === 'object' ? jobOrId : jobs.find(j => j.id === Number(jobOrId));
+        if (!job) return;
+        if (!shopConfig.upi) return alert("Please configure UPI ID in Settings!");
+        activeQRJob = job;
+        document.getElementById('qrCustName').innerText = job.custName;
+        document.getElementById('qrAmount').innerText = `₹${job.balance}`;
+        startStandardQRTimer();
+        document.getElementById('qrModal').style.display = 'flex';
+    }
+
+    function startStandardQRTimer() {
+        if (qrTimerInterval) clearInterval(qrTimerInterval);
+        qrTimeLeft = 120;
+        document.getElementById('qrExpiredOverlay').style.display = 'none';
+
+        const upiUrl = `upi://pay?pa=${encodeURIComponent(shopConfig.upi)}&pn=${encodeURIComponent(shopConfig.name)}&am=${activeQRJob.balance}&cu=INR&tr=${Date.now()}`;
+        
+        generateOfflineQR("standardQRElement", upiUrl);
+        updateStandardTimerDisplay();
+
+        qrTimerInterval = setInterval(() => {
+            qrTimeLeft--;
+            updateStandardTimerDisplay();
+            if (qrTimeLeft <= 0) {
+                clearInterval(qrTimerInterval);
+                document.getElementById('qrExpiredOverlay').style.display = 'flex';
+                document.getElementById('qrCountdown').innerText = "00:00";
+            }
+        }, 1000);
+    }
+
+    function updateStandardTimerDisplay() {
+        const minutes = Math.floor(qrTimeLeft / 60);
+        const seconds = qrTimeLeft % 60;
+        document.getElementById('qrCountdown').innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    function regenerateCurrentQR() {
+        if (activeQRJob) startStandardQRTimer();
+    }
+
+    function closeQRModal() {
+        if (qrTimerInterval) clearInterval(qrTimerInterval);
+        document.getElementById('qrModal').style.display = 'none';
+    }
+
+    // --- PHOTO HANDLING & COMPRESSION ---
+    function handleConditionPhotos(e) {
+        const files = Array.from(e.target.files);
+        if (!files.length) return;
+        files.forEach(file => {
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const maxDim = 800;
+                    let width = img.width, height = img.height;
+                    if (width > height && width > maxDim) { height *= maxDim / width; width = maxDim; }
+                    else if (height > maxDim) { width *= maxDim / height; height = maxDim; }
+                    canvas.width = width; canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    tempUploadedPhotos.push(canvas.toDataURL('image/jpeg', 0.65));
+                    renderFormPhotosPreview();
+                };
+                img.src = evt.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function renderFormPhotosPreview() {
+        const strip = document.getElementById('formPhotosPreviewStrip');
+        strip.innerHTML = '';
+        tempUploadedPhotos.forEach((src, index) => {
+            const div = document.createElement('div');
+            div.style.position = 'relative';
+            div.innerHTML = `
+                <img src="${src}" class="condition-photo-thumb" onclick="viewFullImage('${src}')">
+                <span onclick="removeFormPhoto(${index})" style="position:absolute; top:-4px; right:4px; background:red; color:#fff; border-radius:50%; width:18px; height:18px; font-size:11px; display:flex; align-items:center; justify-content:center; cursor:pointer;">×</span>
+            `;
+            strip.appendChild(div);
+        });
+    }
+
+    function removeFormPhoto(index) { tempUploadedPhotos.splice(index, 1); renderFormPhotosPreview(); }
+    function viewFullImage(src) { document.getElementById('imageViewerImg').src = src; document.getElementById('imageViewerModal').style.display = 'flex'; }
+
+    // --- JOBS & COUNTER INTAKE ---
+    function calcBalance() {
+        const est = parseFloat(document.getElementById('estimate').value) || 0;
+        const adv = parseFloat(document.getElementById('advance').value) || 0;
+        document.getElementById('balance').value = Math.max(0, est - adv);
+    }
+
+    function getNextJobNumber() {
+        if (!jobs || jobs.length === 0) return '#101';
+        let maxNum = 100;
+        jobs.forEach(j => {
+            if (j.jobNo) {
+                let cleanNum = parseInt(j.jobNo.toString().replace(/\D/g, ''));
+                if (!isNaN(cleanNum) && cleanNum > maxNum) {
+                    maxNum = cleanNum;
+                }
+            }
+        });
+        return '#' + (maxNum + 1);
+    }
+
+    function openModal(jobId = null) {
+        currentEditId = jobId; 
+        tempUploadedPhotos = [];
+        document.getElementById('jobForm').reset();
+        document.getElementById('formPhotosPreviewStrip').innerHTML = '';
+
+        if (jobId !== null) {
+            const job = jobs.find(j => j.id === jobId);
+            if (!job) return;
+            document.getElementById('modalTitle').innerText = "Edit Repair Job";
+            document.getElementById('jobNo').value = job.jobNo || getNextJobNumber();
+            document.getElementById('custName').value = job.custName;
+            document.getElementById('custMobile').value = job.custMobile;
+            document.getElementById('deviceModel').value = job.deviceModel;
+            document.getElementById('problem').value = job.problem;
+            document.getElementById('techNotes').value = job.techNotes || '';
+            document.getElementById('estimate').value = job.estimate;
+            document.getElementById('advance').value = job.advance;
+            document.getElementById('balance').value = job.balance;
+            document.getElementById('status').value = job.status;
+
+            const chk = job.checklist || [];
+            document.getElementById('chkAdapter').checked = chk.includes('Adapter');
+            document.getElementById('chkBag').checked = chk.includes('Bag');
+            document.getElementById('chkBattery').checked = chk.includes('Battery');
+            tempUploadedPhotos = [...(job.photos || [])];
+            renderFormPhotosPreview();
+        } else {
+            document.getElementById('modalTitle').innerText = "New Repair Job";
+            document.getElementById('jobNo').value = getNextJobNumber();
+            document.getElementById('status').value = "Received";
+            document.getElementById('estimate').value = 0; 
+            document.getElementById('advance').value = 0; 
+            document.getElementById('balance').value = 0;
+        }
+        document.getElementById('entryModal').style.display = 'flex';
+    }
+
+    function closeModal() { document.getElementById('entryModal').style.display = 'none'; }
+
+    function saveJob(e) {
+        e.preventDefault();
+        const est = parseFloat(document.getElementById('estimate').value) || 0;
+        const adv = parseFloat(document.getElementById('advance').value) || 0;
+        const bal = Math.max(0, est - adv);
+        const status = document.getElementById('status').value;
+        const jobNoVal = document.getElementById('jobNo').value.trim() || getNextJobNumber();
+
+        const checklist = [];
+        if (document.getElementById('chkAdapter').checked) checklist.push('Adapter');
+        if (document.getElementById('chkBag').checked) checklist.push('Bag');
+        if (document.getElementById('chkBattery').checked) checklist.push('Battery');
+
+        const jobData = {
+            jobNo: jobNoVal,
+            custName: document.getElementById('custName').value,
+            custMobile: document.getElementById('custMobile').value,
+            deviceModel: document.getElementById('deviceModel').value,
+            problem: document.getElementById('problem').value,
+            techNotes: document.getElementById('techNotes').value.trim(),
+            checklist, photos: tempUploadedPhotos,
+            estimate: est, advance: adv, balance: bal, status
+        };
+
+        if (currentEditId !== null) {
+            const idx = jobs.findIndex(j => j.id === currentEditId);
+            if (idx !== -1) {
+                const oldJob = jobs[idx];
+                const readyDate = (status === 'Ready' && oldJob.status !== 'Ready') ? Date.now() : (status === 'Ready' ? (oldJob.readyDate || Date.now()) : null);
+                jobs[idx] = { ...oldJob, ...jobData, readyDate };
+            }
+        } else {
+            const newJob = {
+                id: Date.now(), 
+                ...jobData,
+                readyDate: status === 'Ready' ? Date.now() : null,
+                date: new Date().toLocaleDateString('en-IN')
+            };
+            jobs.unshift(newJob);
+            if (adv > 0) cashEntries.unshift({ id: Date.now() + 1, type: 'IN', amount: adv, desc: `Advance - ${newJob.jobNo} (${newJob.custName})`, date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
+        }
+        saveAllData(); closeModal(); renderAll();
+    }
+
+    function getReadyDaysPassed(job) {
+        if (job.status !== 'Ready') return 0;
+        const start = job.readyDate || Date.now();
+        return Math.floor(Math.abs(Date.now() - start) / (1000 * 60 * 60 * 24));
+    }
+
+    function sendReadyPickupReminder(jobId) {
+        const job = jobs.find(j => j.id === jobId);
+        if (!job) return;
+        const days = getReadyDaysPassed(job);
+        let msg = `━━━━━━━━━━━━━━━━━━━━━\n`;
+        msg += `🏪 *${shopConfig.name.toUpperCase()}* - Pickup Reminder 🔔\n`;
+        msg += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
+        msg += `Namaste *${job.custName}* ji,\n`;
+        msg += `Aapka device *${job.deviceModel}* (Job Card: *${job.jobNo}*) repair hokar ${days === 0 ? "aaj" : days + " din se"} ready hai.\n\n`;
+        msg += `Due Balance: *₹${job.balance}*\nKripya shop par aakar collect kar lein.\n\n📞 Support: +91 ${shopConfig.phone}`;
+        window.open(`https://wa.me/91${job.custMobile}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    function viewDetails(id) {
+        const job = jobs.find(j => j.id === id);
+        if (!job) return;
+        document.getElementById('vJobNo').innerText = job.jobNo;
+        document.getElementById('vName').innerText = job.custName;
+        document.getElementById('vMobile').innerText = job.custMobile;
+        document.getElementById('vDevice').innerText = job.deviceModel;
+        document.getElementById('vProblem').innerText = job.problem || 'N/A';
+        document.getElementById('vChecklist').innerText = (job.checklist && job.checklist.length > 0) ? job.checklist.join(', ') : 'Only Device';
+        document.getElementById('vTechNote').innerText = job.techNotes || 'No notes added';
+        document.getElementById('vEstimate').innerText = `₹${job.estimate}`;
+        document.getElementById('vAdvance').innerText = `₹${job.advance}`;
+        document.getElementById('vBalance').innerText = `₹${job.balance}`;
+
+        const gallery = document.getElementById('vPhotosGallery');
+        const photoCard = document.getElementById('vPhotosCard');
+        gallery.innerHTML = '';
+        if (job.photos && job.photos.length > 0) {
+            photoCard.style.display = 'block';
+            job.photos.forEach(src => {
+                const img = document.createElement('img');
+                img.src = src; img.className = 'condition-photo-thumb';
+                img.onclick = () => viewFullImage(src);
+                gallery.appendChild(img);
+            });
+        } else { photoCard.style.display = 'none'; }
+
+        const badge = document.getElementById('vStatusBadge');
+        badge.innerText = job.status; badge.className = `card-badge badge-${job.status.toLowerCase().replace(' ', '-')}`;
+
+        document.getElementById('vCallBtn').href = `tel:${job.custMobile}`;
+        document.getElementById('vWaBtn').onclick = () => openWhatsAppStatusMessage(job);
+        document.getElementById('vQrBtn').onclick = () => showQR(job); // Linked properly!
+        document.getElementById('vPrintBtn').onclick = () => printTicketDirect(job);
+        document.getElementById('vPrintStickerBtn').onclick = () => printStickerDirect(job);
+        document.getElementById('vEditBtn').onclick = () => { document.getElementById('viewDetailModal').style.display = 'none'; openModal(job.id); };
+        document.getElementById('vDeleteBtn').onclick = () => {
+            if (confirm("Delete this job?")) { jobs = jobs.filter(j => j.id !== job.id); saveAllData(); document.getElementById('viewDetailModal').style.display = 'none'; renderAll(); }
+        };
+        document.getElementById('viewDetailModal').style.display = 'flex';
+    }
+
+    function openWhatsAppStatusMessage(jobOrId) {
+        const job = typeof jobOrId === 'object' ? jobOrId : jobs.find(j => j.id === Number(jobOrId));
+        if (!job) return;
+        let msg = `🏪 *${shopConfig.name.toUpperCase()}* - Service Update\n\nHello *${job.custName}*,\n`;
+        if (job.status === 'Ready') msg += `🎉 Aapka device *${job.deviceModel}* (${job.jobNo}) ready hai.\n💳 Due Balance: ₹${job.balance}`;
+        else msg += `Aapka repair job *${job.jobNo}* (${job.deviceModel}) status: *${job.status}* | Balance: ₹${job.balance}`;
+        msg += `\n\n📞 Support: +91 ${shopConfig.phone}`;
+        window.open(`https://wa.me/91${job.custMobile}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    function printStickerDirect(jobOrId) {
+        const job = typeof jobOrId === 'object' ? jobOrId : jobs.find(j => j.id === Number(jobOrId));
+        if (!job) return;
+        const stickerContent = `<!DOCTYPE html><html><head><style>@page { size: 50mm 30mm; margin: 0; } body { font-family: monospace; font-size: 10px; margin: 4px; color: #000; } .center { text-align: center; font-weight: bold; } .border { border-top: 1px dashed #000; margin: 2px 0; }</style></head><body><div class="center">${shopConfig.name}</div><div class="border"></div><div><strong>Job:</strong> ${job.jobNo} (${job.date})</div><div><strong>Cust:</strong> ${job.custName} (..${job.custMobile.slice(-4)})</div><div><strong>Model:</strong> ${job.deviceModel}</div><div><strong>Bal:</strong> ₹${job.balance}</div></body></html>`;
+        const iframe = document.getElementById('printFrame');
+        const doc = iframe.contentDocument || iframe.contentWindow.document;
+        doc.open(); doc.write(stickerContent); doc.close();
+        setTimeout(() => iframe.contentWindow.print(), 200);
+    }
+
+    function printTicketDirect(jobOrId) {
+        const job = typeof jobOrId === 'object' ? jobOrId : jobs.find(j => j.id === Number(jobOrId));
+        if (!job) return;
+        const upiPayUrl = `upi://pay?pa=${encodeURIComponent(shopConfig.upi || '')}&pn=${encodeURIComponent(shopConfig.name || 'Shop')}&am=${job.balance}&cu=INR`;
+        const printContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Invoice - ${job.jobNo}</title><style>@page { size: A4 portrait; margin: 15mm; } * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; } body { margin: 0; color: #111; background: #fff; width: 100%; } .wrapper { border: 2px solid #0b2239; border-radius: 8px; padding: 24px; } .header { display: flex; justify-content: space-between; border-bottom: 2px solid #0b2239; padding-bottom: 12px; margin-bottom: 16px; } .grid { width: 100%; border: 1px solid #ddd; margin-bottom: 16px; } .grid td { padding: 8px 12px; font-size: 13px; border-bottom: 1px solid #eee; } .table { width: 100%; border-collapse: collapse; margin-bottom: 16px; } .table th { background: #0b2239; color: #fff; padding: 8px; text-align: left; } .table td { padding: 10px; border-bottom: 1px solid #ddd; } .bottom { display: flex; justify-content: space-between; margin-top: 15px; }</style></head><body><div class="wrapper"><div class="header"><div><h2 style="margin:0; text-transform:uppercase;">${shopConfig.name}</h2><small>Repair Service Center | Call: ${shopConfig.phone}</small></div><div style="text-align:right;"><h3 style="margin:0; color:#0088ff;">REPAIR INVOICE</h3><div>Job No: <strong>${job.jobNo}</strong></div><div>Date: ${job.date}</div></div></div><table class="grid" cellpadding="0" cellspacing="0"><tr><td style="width:30%; background:#f8fafc;">Customer:</td><td><strong>${job.custName}</strong> (+91 ${job.custMobile})</td></tr><tr><td style="background:#f8fafc;">Device Model:</td><td>${job.deviceModel}</td></tr><tr><td style="background:#f8fafc;">Accessories:</td><td>${(job.checklist||[]).join(', ') || 'Only Device'}</td></tr><tr><td style="background:#f8fafc;">Reported Fault:</td><td>${job.problem || 'Service'}</td></tr></table><table class="table"><thead><tr><th>Description</th><th style="text-align:right;">Amount</th></tr></thead><tbody><tr><td>Hardware Repair & Component Diagnosis</td><td style="text-align:right;">₹${job.estimate}</td></tr></tbody></table><div class="bottom"><div id="printQRElement" style="text-align:center; border:1.5px dashed #0088ff; padding:10px; border-radius:8px; width:150px;"><div style="font-size:11px; font-weight:bold; margin-bottom:6px;">UPI Scan to Pay</div></div><div style="width:240px; font-size:13px;"><div style="display:flex; justify-content:space-between; margin:4px 0;"><span>Estimate:</span><span>₹${job.estimate}</span></div><div style="display:flex; justify-content:space-between; margin:4px 0;"><span>Advance:</span><span style="color:green;">-₹${job.advance}</span></div><div style="display:flex; justify-content:space-between; margin:6px 0; font-weight:bold; font-size:16px; color:red; border-top:1px solid #000; padding-top:4px;"><span>Balance Due:</span><span>₹${job.balance}</span></div></div></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script><script>new QRCode(document.getElementById("printQRElement"), { text: "${upiPayUrl}", width: 120, height: 120, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });<\/script></body></html>`;
+        const iframe = document.getElementById('printFrame');
+        const doc = iframe.contentDocument || iframe.contentWindow.document;
+        doc.open(); doc.write(printContent); doc.close();
+        setTimeout(() => iframe.contentWindow.print(), 500);
+    }
+
+    function renderAll() {
+        const query = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+        const filtered = jobs.filter(j => 
+            j.jobNo.toLowerCase().includes(query) || j.custName.toLowerCase().includes(query) || j.custMobile.includes(query) || j.deviceModel.toLowerCase().includes(query)
+        );
+
+        let totalBal = 0, totalEst = 0, preComp = 0, pending = 0, ready = 0, delivered = 0;
+        filtered.forEach(j => {
+            totalBal += parseFloat(j.balance) || 0;
+            totalEst += parseFloat(j.estimate) || 0;
+            if (j.status === 'Pre-complete') preComp++;
+            else if (j.status === 'Ready') ready++;
+            else if (j.status === 'Delivered') delivered++;
+            else pending++;
+        });
+
+        document.getElementById('dTotal').innerText = filtered.length;
+        document.getElementById('dRevenue').innerText = `₹${totalEst.toLocaleString('en-IN')}`;
+        document.getElementById('dPreComplete').innerText = preComp;
+        document.getElementById('dPending').innerText = pending;
+        document.getElementById('dReady').innerText = ready;
+        document.getElementById('dDelivered').innerText = delivered;
+        document.getElementById('dBalance').innerText = `₹${totalBal.toLocaleString('en-IN')}`;
+
+        renderJobSection('precompleteSection', 'precompleteCardsContainer', 'precompleteTableBody', filtered.filter(j => j.status === 'Pre-complete'), false);
+        renderJobSection('readySection', 'readyCardsContainer', 'readyTableBody', filtered.filter(j => j.status === 'Ready'), true);
+        renderJobSection('holdSection', 'holdCardsContainer', 'holdTableBody', filtered.filter(j => j.status === 'Hold'), false);
+
+        renderListCards(filtered.filter(j => !['Pre-complete','Ready','Hold'].includes(j.status)), 'mobileCardsContainer', 'desktopTableBody', false);
+    }
+
+    function renderJobSection(secId, cardId, tableId, list, isReadySection) {
+        const sec = document.getElementById(secId);
+        sec.style.display = list.length > 0 ? 'block' : 'none';
+        renderListCards(list, cardId, tableId, isReadySection);
+    }
+
+    function renderListCards(items, cardContainerId, tableBodyId, isReadySection = false) {
+        const cardBox = document.getElementById(cardContainerId);
+        const tableBox = document.getElementById(tableBodyId);
+        cardBox.innerHTML = ''; tableBox.innerHTML = '';
+
+        items.forEach(j => {
+            const days = isReadySection ? getReadyDaysPassed(j) : 0;
+            let overdueBadge = '';
+            if (isReadySection) {
+                if (days >= 3) overdueBadge = `<span class="overdue-pill ${days >= 5 ? 'overdue-danger' : 'overdue-warning'}">🚨 ${days} Days Ready (Uncollected)</span>`;
+                else overdueBadge = `<span class="overdue-pill" style="background:#06231c; color:var(--green-text);">✓ Ready (${days === 0 ? 'Today' : days + 'd ago'})</span>`;
+            }
+
+            const card = document.createElement('div');
+            card.className = `job-card ${isReadySection ? 'ready-card' : ''}`;
+            card.onclick = () => viewDetails(j.id);
+            card.innerHTML = `
+                <div class="card-top"><div><h3 class="job-title">${j.jobNo} - ${j.custName}</h3>${overdueBadge}</div><span class="card-badge badge-${j.status.toLowerCase().replace(' ','-')}">${j.status}</span></div>
+                <div class="detail-line">Device: <span>${j.deviceModel}</span></div>
+                <div class="detail-sub">Issue: ${j.problem || 'N/A'}</div>
+                <div class="detail-line" style="margin-top:6px;">Balance: <strong style="color:var(--red-text)">₹${j.balance}</strong></div>
+                <div class="card-actions">
+                    <button class="btn-act btn-edit" onclick="event.stopPropagation(); openModal(${j.id})">✏️ Edit</button>
+                    <button class="btn-act btn-qr" onclick="event.stopPropagation(); showQR(${j.id})">📲 QR</button>
+                    <button class="btn-act btn-wa" onclick="event.stopPropagation(); openWhatsAppStatusMessage(${j.id})">💬 WA</button>
+                    <button class="btn-act btn-print" onclick="event.stopPropagation(); printTicketDirect(${j.id})">🖨️ Print</button>
+                </div>
+                ${isReadySection ? `<div class="card-actions" style="margin-top:8px;"><button class="btn-act btn-wa" style="width:100%;" onclick="event.stopPropagation(); sendReadyPickupReminder(${j.id})">🔔 Send Pickup Reminder</button></div>` : ''}
+            `;
+            cardBox.appendChild(card);
+
+            const tr = document.createElement('tr');
+            tr.className = 'clickable-row';
+            tr.onclick = () => viewDetails(j.id);
+            tr.innerHTML = `
+                <td><strong>${j.jobNo}</strong></td><td>${j.custName}<br><small>${j.custMobile}</small></td><td>${j.deviceModel}</td>
+                ${isReadySection ? '' : `<td>${j.problem || 'N/A'}</td>`}
+                <td><span class="card-badge badge-${j.status.toLowerCase().replace(' ','-')}">${j.status}</span>${isReadySection ? `<br>${overdueBadge}` : ''}</td>
+                <td style="color:var(--red-text); font-weight:bold;">₹${j.balance}</td>
+                <td>
+                    <button class="btn-act btn-edit" onclick="event.stopPropagation(); openModal(${j.id})">Edit</button>
+                    <button class="btn-act btn-qr" onclick="event.stopPropagation(); showQR(${j.id})">QR</button>
+                    <button class="btn-act btn-wa" onclick="event.stopPropagation(); openWhatsAppStatusMessage(${j.id})">WA</button>
+                    <button class="btn-act btn-print" onclick="event.stopPropagation(); printTicketDirect(${j.id})">Print</button>
+                    ${isReadySection ? `<button class="btn-act btn-wa" style="margin-left:4px;" onclick="event.stopPropagation(); sendReadyPickupReminder(${j.id})">Remind</button>` : ''}
+                </td>
+            `;
+            tableBox.appendChild(tr);
+        });
+    }
+
+    // --- CASHBOOK MODULE ---
+    function openCashbookModal() { renderCashbook(); document.getElementById('cashbookModal').style.display = 'flex'; }
+    function saveCashEntry(e) {
+        e.preventDefault();
+        const type = document.getElementById('cbType').value;
+        const amount = parseFloat(document.getElementById('cbAmount').value) || 0;
+        const desc = document.getElementById('cbDesc').value.trim();
+        cashEntries.unshift({ id: Date.now(), type, amount, desc, date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
+        saveAllData(); document.getElementById('cashEntryForm').reset(); renderCashbook();
+    }
+    function renderCashbook() {
+        let totalIn = 0, totalOut = 0;
+        const list = document.getElementById('cashbookEntriesList');
+        list.innerHTML = '';
+        cashEntries.forEach(entry => {
+            if (entry.type === 'IN') totalIn += entry.amount; else totalOut += entry.amount;
+            const div = document.createElement('div');
+            div.style.cssText = "display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #1a2942; font-size:12px;";
+            div.innerHTML = `<div><span style="color:${entry.type === 'IN' ? 'var(--green-text)' : 'var(--red-text)'}; font-weight:bold;">[${entry.type}]</span> ${entry.desc} <small style="color:var(--text-sub);">(${entry.date})</small></div><div style="font-weight:bold; color:#fff;">₹${entry.amount}</div>`;
+            list.appendChild(div);
+        });
+        document.getElementById('cbCashIn').innerText = `₹${totalIn}`;
+        document.getElementById('cbCashOut').innerText = `₹${totalOut}`;
+        document.getElementById('cbNetCash').innerText = `₹${totalIn - totalOut}`;
+    }
+
+    function handleFloatingAdd() { openModal(); }
+    function quickCallAction() { if (jobs.length > 0 && jobs[0].custMobile) window.location.href = `tel:${jobs[0].custMobile}`; }
+    function openAdminModal() { document.getElementById('adminModal').style.display = 'flex'; }
+    function closeAdminModal() { document.getElementById('adminModal').style.display = 'none'; }
+    function openSettings() { document.getElementById('settingsModal').style.display = 'flex'; }
+    function exportData() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ jobs, shopConfig, priceItems, dealers, cashEntries }));
+        const a = document.createElement('a'); a.href = dataStr; a.download = `quick_solutions_backup_${new Date().toISOString().slice(0,10)}.json`;
+        document.body.appendChild(a); a.click(); a.remove();
+    }
+</script>
+</body>
+</html>
