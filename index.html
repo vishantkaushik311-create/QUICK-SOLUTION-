@@ -594,6 +594,22 @@
 <!-- Invisible Print Iframe -->
 <iframe id="printFrame"></iframe>
 
+<!-- Local Wi-Fi Backup Settings -->
+<div class="modal" id="syncSettingsModal">
+    <div class="modal-content">
+        <h3 style="margin-top:0; color:#fff;">🔄 Laptop Auto Backup</h3>
+        <p style="font-size:12px; color:var(--text-sub);">Laptop par backup server chala kar uska Wi-Fi address yahan save karein.</p>
+        <div class="form-group">
+            <label>Laptop server URL</label>
+            <input type="url" id="syncServerUrl" placeholder="http://192.168.1.5:8765">
+        </div>
+        <button class="admin-btn" onclick="saveSyncSettings()" style="width:100%;">Save & Sync Now</button>
+        <button class="settings-btn" onclick="syncNow()" style="width:100%; margin-top:8px;">Sync Now</button>
+        <button class="settings-btn" onclick="document.getElementById('syncSettingsModal').style.display='none'" style="width:100%; margin-top:8px;">Close</button>
+        <div id="syncStatus" style="font-size:11px; color:var(--text-sub); margin-top:10px;"></div>
+    </div>
+</div>
+
 <!-- Navigation Bar -->
 <div class="bottom-nav">
     <div onclick="quickCallAction()" class="nav-item"><span style="font-size:16px;">📞</span><span>Calls</span></div>
@@ -675,6 +691,7 @@
 
     let customQrTimerInterval = null;
     let customQrTimeLeft = 120;
+    let syncInProgress = false;
 
     async function checkForHostedUpdate() {
         const updateManifestUrl = 'https://vishantkaushik311-create.github.io/QUICK-SOLUTION-/version.json?t=' + Date.now();
@@ -717,6 +734,87 @@
         localStorage.setItem('qs_price_db', priceBackup);
         localStorage.setItem('qs_dealers_db', dealerBackup);
         localStorage.setItem('qs_cashbook_db', cashBackup);
+        scheduleSync();
+    }
+
+    function getSyncServerUrl() {
+        return (localStorage.getItem('qs_sync_server_url') || '').replace(/\/+$/, '');
+    }
+
+    function scheduleSync() {
+        if (syncInProgress || !getSyncServerUrl()) return;
+        clearTimeout(window.syncTimer);
+        window.syncTimer = setTimeout(syncNow, 500);
+    }
+
+    function setSyncStatus(message, isError = false) {
+        const status = document.getElementById('syncStatus');
+        if (status) {
+            status.innerText = message;
+            status.style.color = isError ? 'var(--red-text)' : 'var(--green-text)';
+        }
+    }
+
+    async function syncNow() {
+        const baseUrl = getSyncServerUrl();
+        if (!baseUrl || syncInProgress) return;
+        syncInProgress = true;
+        setSyncStatus('Syncing...');
+        try {
+            const response = await fetch(`${baseUrl}/backup`, { cache: 'no-store' });
+            if (!response.ok) throw new Error(`Server returned ${response.status}`);
+            const remote = await response.json();
+            const remoteJobs = Array.isArray(remote.jobs) ? remote.jobs : [];
+            const localById = new Map(jobs.map(job => [String(job.id), job]));
+            remoteJobs.forEach(job => {
+                const key = String(job.id);
+                if (!localById.has(key)) localById.set(key, job);
+                else if ((job.updatedAt || 0) > (localById.get(key).updatedAt || 0)) localById.set(key, job);
+            });
+            jobs = Array.from(localById.values()).sort((a, b) => (b.id || 0) - (a.id || 0));
+            if (Array.isArray(remote.priceItems)) priceItems = remote.priceItems;
+            if (Array.isArray(remote.dealers)) dealers = remote.dealers;
+            if (Array.isArray(remote.cashEntries)) cashEntries = remote.cashEntries;
+            const payload = { jobs, priceItems, dealers, cashEntries, shopConfig, savedAt: Date.now() };
+            const upload = await fetch(`${baseUrl}/backup`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!upload.ok) throw new Error(`Upload returned ${upload.status}`);
+            saveAllDataLocalOnly();
+            renderAll();
+            setSyncStatus(`Last synced: ${new Date().toLocaleTimeString()}`);
+        } catch (error) {
+            setSyncStatus('Laptop server unavailable', true);
+            console.warn('Local sync failed:', error);
+        } finally {
+            syncInProgress = false;
+        }
+    }
+
+    function saveAllDataLocalOnly() {
+        const jobBackup = JSON.stringify(jobs);
+        localStorage.setItem('qs_inward_db', jobBackup);
+        localStorage.setItem('srm_jobs', jobBackup);
+        localStorage.setItem('jobs', jobBackup);
+        localStorage.setItem('repair_jobs', jobBackup);
+        localStorage.setItem('quick_solutions_jobs', jobBackup);
+        localStorage.setItem('qs_price_db', JSON.stringify(priceItems));
+        localStorage.setItem('qs_dealers_db', JSON.stringify(dealers));
+        localStorage.setItem('qs_cashbook_db', JSON.stringify(cashEntries));
+    }
+
+    function openSettings() {
+        document.getElementById('syncServerUrl').value = getSyncServerUrl();
+        document.getElementById('syncSettingsModal').style.display = 'flex';
+    }
+
+    function saveSyncSettings() {
+        const url = document.getElementById('syncServerUrl').value.trim().replace(/\/+$/, '');
+        if (url && !/^https?:\/\/[^/]+(?::\d+)?$/.test(url)) return alert('Server URL format: http://192.168.1.5:8765');
+        localStorage.setItem('qs_sync_server_url', url);
+        syncNow();
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initApp);
@@ -1234,7 +1332,6 @@
     function quickCallAction() { if (jobs.length > 0 && jobs[0].custMobile) window.location.href = `tel:${jobs[0].custMobile}`; }
     function openAdminModal() { document.getElementById('adminModal').style.display = 'flex'; }
     function closeAdminModal() { document.getElementById('adminModal').style.display = 'none'; }
-    function openSettings() { document.getElementById('settingsModal').style.display = 'flex'; }
     function exportData() {
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ jobs, shopConfig, priceItems, dealers, cashEntries }));
         const a = document.createElement('a'); a.href = dataStr; a.download = `quick_solutions_backup_${new Date().toISOString().slice(0,10)}.json`;
