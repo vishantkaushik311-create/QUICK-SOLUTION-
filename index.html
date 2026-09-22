@@ -671,7 +671,7 @@
             <button class="settings-btn" onclick="exportData()" style="flex:1;">💾 Backup</button>
             <button class="settings-btn" onclick="document.getElementById('adminModal').style.display='none'; document.getElementById('syncSettingsModal').style.display='flex';" style="flex:1;">← Settings</button>
         </div>
-        <div style="text-align:center; color:var(--text-sub); font-size:11px; margin-top:14px;">Quick Solutions • Admin Panel • v1.1.5</div>
+        <div style="text-align:center; color:var(--text-sub); font-size:11px; margin-top:14px;">Quick Solutions • Admin Panel • v1.1.6</div>
         <button class="btn-act btn-delete" onclick="closeAdminModal()" style="width:100%; margin-top:10px;">Close Admin Panel</button>
     </div>
 </div>
@@ -765,7 +765,7 @@
             const response = await fetch(updateManifestUrl, { cache: 'no-store' });
             if (!response.ok) return;
             const manifest = await response.json();
-            const currentVersion = '1.1.5';
+            const currentVersion = '1.1.6';
             if (manifest.version && manifest.version !== currentVersion && confirm(`New update ${manifest.version} available. Update now?`)) {
                 window.location.replace('https://vishantkaushik311-create.github.io/QUICK-SOLUTION-/?v=' + encodeURIComponent(manifest.version));
             }
