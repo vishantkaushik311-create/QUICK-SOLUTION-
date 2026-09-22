@@ -257,10 +257,6 @@
             <h1 id="displayShopTitle">Quick Solutions</h1>
         </div>
         <div class="header-actions">
-            <button class="settings-btn" onclick="exportToCSV()" style="border-color:var(--accent-glow); color:var(--accent-glow);">📊 Excel Export</button>
-            <button class="settings-btn" onclick="openCashbookModal()" style="border-color:var(--green-text); color:var(--green-text);">💵 Cashbook</button>
-            <button class="admin-btn" onclick="openAdminModal()">👑 Admin</button>
-            <button class="settings-btn" onclick="exportData()">💾 Backup</button>
             <button class="settings-btn" onclick="openSettings()">⚙️ Settings</button>
         </div>
     </div>
@@ -597,7 +593,16 @@
 <!-- Local Wi-Fi Backup Settings -->
 <div class="modal" id="syncSettingsModal">
     <div class="modal-content">
-        <h3 style="margin-top:0; color:#fff;">🔄 Laptop Auto Backup</h3>
+        <h3 style="margin-top:0; color:#fff;">⚙️ Settings</h3>
+        <div class="controls-row" style="margin:12px 0 4px;">
+            <button class="settings-btn" onclick="exportToCSV()" style="flex:1; border-color:var(--accent-glow); color:var(--accent-glow);">📊 Excel Export</button>
+            <button class="settings-btn" onclick="openCashbookModal(); document.getElementById('syncSettingsModal').style.display='none';" style="flex:1; border-color:var(--green-text); color:var(--green-text);">💵 Cashbook</button>
+        </div>
+        <div class="controls-row" style="margin:0 0 12px;">
+            <button class="admin-btn" onclick="openAdminModal(); document.getElementById('syncSettingsModal').style.display='none';" style="flex:1;">👑 Admin</button>
+            <button class="settings-btn" onclick="exportData()" style="flex:1;">💾 Backup</button>
+        </div>
+        <h4 style="margin:12px 0 4px; color:var(--accent-glow);">🔄 Laptop Auto Backup</h4>
         <p style="font-size:12px; color:var(--text-sub);">Laptop par backup server chala kar uska Wi-Fi address yahan save karein.</p>
         <div class="form-group">
             <label>Laptop server URL</label>
@@ -699,7 +704,7 @@
             const response = await fetch(updateManifestUrl, { cache: 'no-store' });
             if (!response.ok) return;
             const manifest = await response.json();
-            const currentVersion = '1.0.0';
+            const currentVersion = '1.1.1';
             if (manifest.version && manifest.version !== currentVersion && confirm(`New update ${manifest.version} available. Update now?`)) {
                 window.location.replace('https://vishantkaushik311-create.github.io/QUICK-SOLUTION-/?v=' + encodeURIComponent(manifest.version));
             }
