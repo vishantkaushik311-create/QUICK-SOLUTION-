@@ -36,6 +36,12 @@
             padding-bottom: 80px; 
             min-height: 100vh;
         }
+        @media (max-width: 799px) {
+            body {
+                padding-top: env(safe-area-inset-top, 24px);
+                padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+            }
+        }
 
         .app-container { max-width: 1100px; margin: 0 auto; padding: 16px; }
         .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; flex-wrap: wrap; gap: 8px; }
@@ -209,6 +215,11 @@
             position: fixed; bottom: 0; left: 0; right: 0;
             height: 60px; background-color: var(--nav-bg); border-top: 1px solid var(--card-border);
             display: flex; justify-content: space-around; align-items: center; z-index: 50;
+        }
+        @media (max-width: 799px) {
+            .bottom-nav {
+                bottom: env(safe-area-inset-bottom, 0px);
+            }
         }
         .nav-item { display: flex; flex-direction: column; align-items: center; font-size: 10px; color: var(--text-sub); cursor: pointer; }
         .nav-item.active { color: var(--accent-glow); background-color: #121e36; padding: 6px 14px; border-radius: 16px; border: 1px solid var(--card-border); }
@@ -704,7 +715,7 @@
             const response = await fetch(updateManifestUrl, { cache: 'no-store' });
             if (!response.ok) return;
             const manifest = await response.json();
-            const currentVersion = '1.1.1';
+            const currentVersion = '1.1.2';
             if (manifest.version && manifest.version !== currentVersion && confirm(`New update ${manifest.version} available. Update now?`)) {
                 window.location.replace('https://vishantkaushik311-create.github.io/QUICK-SOLUTION-/?v=' + encodeURIComponent(manifest.version));
             }
