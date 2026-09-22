@@ -224,6 +224,21 @@
         }
         .nav-item { display: flex; flex-direction: column; align-items: center; font-size: 10px; color: var(--text-sub); cursor: pointer; }
         .nav-item.active { color: var(--accent-glow); background-color: #121e36; padding: 6px 14px; border-radius: 16px; border: 1px solid var(--card-border); }
+        .admin-profile {
+            display: flex; align-items: center; gap: 12px; padding: 14px;
+            background: linear-gradient(135deg, #121e36, #0d1527);
+            border: 1px solid var(--card-border); border-radius: 14px; margin-bottom: 14px;
+        }
+        .admin-avatar {
+            width: 44px; height: 44px; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; background: #16243d;
+            border: 1px solid var(--accent-blue); font-size: 22px;
+        }
+        .admin-section {
+            background: rgba(5, 10, 20, 0.45); border: 1px solid var(--card-border);
+            border-radius: 12px; padding: 12px; margin-top: 10px;
+        }
+        .admin-section-title { margin: 0 0 10px; color: #fff; font-size: 14px; }
 
         .qr-card-container {
             position: relative; display: inline-flex; padding: 12px; background: #ffffff;
@@ -627,6 +642,39 @@
     </div>
 </div>
 
+<!-- Admin Settings Modal -->
+<div class="modal" id="adminModal">
+    <div class="modal-content">
+        <h3 style="margin:0 0 4px; color:#fff;">⚙️ Admin Settings</h3>
+        <p style="margin:0 0 14px; color:var(--text-sub); font-size:12px;">Shop preferences, payment configuration and app controls</p>
+        <div class="admin-profile">
+            <div class="admin-avatar">👑</div>
+            <div style="flex:1;">
+                <strong style="display:block; color:#fff; font-size:15px;">Administrator</strong>
+                <span style="font-size:12px; color:var(--text-sub);">Full access to shop settings</span>
+            </div>
+            <span style="font-size:10px; color:var(--green-text); border:1px solid var(--green-text); border-radius:12px; padding:4px 8px;">ADMIN</span>
+        </div>
+        <div class="admin-section">
+            <h4 class="admin-section-title">🏪 Shop Profile</h4>
+            <div class="form-group"><label>Shop name</label><input type="text" id="adminShopName" placeholder="Quick Solutions"></div>
+            <div class="form-group"><label>Support phone</label><input type="tel" id="adminShopPhone" placeholder="7838544106"></div>
+            <div class="form-group"><label>Logo URL</label><input type="url" id="adminShopLogo" placeholder="https://..."></div>
+        </div>
+        <div class="admin-section">
+            <h4 class="admin-section-title">💳 Payment Configuration</h4>
+            <div class="form-group"><label>UPI ID</label><input type="text" id="adminShopUpi" placeholder="yourname@upi"></div>
+        </div>
+        <button class="admin-btn" onclick="saveAdminSettings()" style="width:100%; margin-top:12px;">Save Admin Settings</button>
+        <div class="admin-section" style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="settings-btn" onclick="exportData()" style="flex:1;">💾 Backup</button>
+            <button class="settings-btn" onclick="document.getElementById('adminModal').style.display='none'; document.getElementById('syncSettingsModal').style.display='flex';" style="flex:1;">← Settings</button>
+        </div>
+        <div style="text-align:center; color:var(--text-sub); font-size:11px; margin-top:14px;">Quick Solutions • Admin Panel • v1.1.4</div>
+        <button class="btn-act btn-delete" onclick="closeAdminModal()" style="width:100%; margin-top:10px;">Close Admin Panel</button>
+    </div>
+</div>
+
 <!-- Navigation Bar -->
 <div class="bottom-nav">
     <div onclick="quickCallAction()" class="nav-item"><span style="font-size:16px;">📞</span><span>Calls</span></div>
@@ -716,7 +764,7 @@
             const response = await fetch(updateManifestUrl, { cache: 'no-store' });
             if (!response.ok) return;
             const manifest = await response.json();
-            const currentVersion = '1.1.3';
+            const currentVersion = '1.1.4';
             if (manifest.version && manifest.version !== currentVersion && confirm(`New update ${manifest.version} available. Update now?`)) {
                 window.location.replace('https://vishantkaushik311-create.github.io/QUICK-SOLUTION-/?v=' + encodeURIComponent(manifest.version));
             }
@@ -1347,7 +1395,26 @@
 
     function handleFloatingAdd() { openModal(); }
     function quickCallAction() { if (jobs.length > 0 && jobs[0].custMobile) window.location.href = `tel:${jobs[0].custMobile}`; }
-    function openAdminModal() { document.getElementById('adminModal').style.display = 'flex'; }
+    function openAdminModal() {
+        document.getElementById('adminShopName').value = shopConfig.name || '';
+        document.getElementById('adminShopPhone').value = shopConfig.phone || '';
+        document.getElementById('adminShopLogo').value = shopConfig.logo || '';
+        document.getElementById('adminShopUpi').value = shopConfig.upi || '';
+        document.getElementById('adminModal').style.display = 'flex';
+    }
+    function saveAdminSettings() {
+        shopConfig = {
+            ...shopConfig,
+            name: document.getElementById('adminShopName').value.trim() || 'Quick Solutions',
+            phone: document.getElementById('adminShopPhone').value.trim(),
+            logo: document.getElementById('adminShopLogo').value.trim(),
+            upi: document.getElementById('adminShopUpi').value.trim()
+        };
+        localStorage.setItem('qs_shop_config', JSON.stringify(shopConfig));
+        updateShopInfoDisplay();
+        saveAllData();
+        alert('Admin settings saved successfully.');
+    }
     function closeAdminModal() { document.getElementById('adminModal').style.display = 'none'; }
     function exportData() {
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ jobs, shopConfig, priceItems, dealers, cashEntries }));
