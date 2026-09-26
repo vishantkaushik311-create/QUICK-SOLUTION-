@@ -75,6 +75,13 @@
         }
 
         .sub-header { color: var(--text-sub); font-size: 12px; margin-bottom: 16px; margin-left: 56px; }
+        .desktop-sync-notice {
+            display: none; margin: -8px 16px 14px 56px; padding: 8px 11px;
+            border: 1px solid var(--card-border); border-radius: 9px;
+            background: rgba(13, 21, 39, 0.82); color: var(--text-sub); font-size: 11px;
+        }
+        .desktop-sync-notice.visible { display: block; }
+        .desktop-sync-notice.error { color: var(--red-text); border-color: rgba(255, 82, 82, 0.45); }
 
         .dashboard-grid { 
             display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); 
@@ -297,6 +304,7 @@
             .brand-box { gap: 8px; }
             .brand-box h1 { font-size: 18px; }
             .logo-wrapper { width: 40px; height: 40px; }
+            .desktop-sync-notice { margin-left: 0; }
             .app-sidebar {
                 top: max(12px, env(safe-area-inset-top, 12px)); bottom: max(12px, env(safe-area-inset-bottom, 12px));
                 left: 12px; width: min(290px, calc(100vw - 40px)); transform: translateX(calc(-100% - 16px));
@@ -375,6 +383,7 @@
         </div>
     </div>
     <div class="sub-header" id="subHeaderTitle">Inward Repairs & Service Center</div>
+    <div class="desktop-sync-notice" id="desktopSyncNotice" role="status" aria-live="polite"></div>
 
     <!-- MAIN REPAIRS VIEW -->
     <div id="inwardViewSection">
@@ -758,7 +767,7 @@
             <button class="settings-btn" onclick="exportData()" style="flex:1;">💾 Backup</button>
             <button class="settings-btn" onclick="document.getElementById('adminModal').style.display='none'; document.getElementById('syncSettingsModal').style.display='flex';" style="flex:1;">← Settings</button>
         </div>
-        <div style="text-align:center; color:var(--text-sub); font-size:11px; margin-top:14px;">Quick Solutions • Admin Panel • v1.1.9</div>
+        <div style="text-align:center; color:var(--text-sub); font-size:11px; margin-top:14px;">Quick Solutions • Admin Panel • v1.1.10</div>
         <button class="btn-act btn-delete" onclick="closeAdminModal()" style="width:100%; margin-top:10px;">Close Admin Panel</button>
     </div>
 </div>
@@ -867,6 +876,9 @@
     let customQrTimerInterval = null;
     let customQrTimeLeft = 120;
     let syncInProgress = false;
+    const autoSyncDesktop = location.hostname === 'vishantkaushik311-create.github.io'
+        && !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+        && !(navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
     async function checkForHostedUpdate() {
         const updateManifestUrl = 'https://vishantkaushik311-create.github.io/QUICK-SOLUTION-/version.json?t=' + Date.now();
@@ -874,7 +886,7 @@
             const response = await fetch(updateManifestUrl, { cache: 'no-store' });
             if (!response.ok) return;
             const manifest = await response.json();
-            const currentVersion = '1.1.9';
+            const currentVersion = '1.1.10';
             if (manifest.version && manifest.version !== currentVersion && confirm(`New update ${manifest.version} available. Update now?`)) {
                 window.location.replace('https://vishantkaushik311-create.github.io/QUICK-SOLUTION-/?v=' + encodeURIComponent(manifest.version) + '&t=' + Date.now());
             }
@@ -888,9 +900,20 @@
             const savedConfig = localStorage.getItem('qs_shop_config');
             if (savedConfig) shopConfig = { ...shopConfig, ...JSON.parse(savedConfig) };
         } catch(e) {}
-        saveAllData();
+        if (autoSyncDesktop) {
+            if (!getSyncServerUrl()) localStorage.setItem('qs_sync_server_url', 'http://127.0.0.1:8765');
+            saveAllDataLocalOnly();
+        } else {
+            saveAllData();
+        }
         updateShopInfoDisplay();
         renderAll();
+        if (autoSyncDesktop) {
+            const notice = document.getElementById('desktopSyncNotice');
+            notice.classList.add('visible');
+            setSyncStatus('Connecting to laptop backup...');
+            syncNow();
+        }
         checkForHostedUpdate();
     }
 
@@ -928,6 +951,12 @@
             status.innerText = message;
             status.style.color = isError ? 'var(--red-text)' : 'var(--green-text)';
         }
+        const notice = document.getElementById('desktopSyncNotice');
+        if (notice && autoSyncDesktop) {
+            notice.innerText = message;
+            notice.classList.toggle('error', isError);
+            notice.classList.add('visible');
+        }
     }
 
     async function syncNow() {
@@ -959,7 +988,7 @@
             if (!upload.ok) throw new Error(`Upload returned ${upload.status}`);
             saveAllDataLocalOnly();
             renderAll();
-            setSyncStatus(`Last synced: ${new Date().toLocaleTimeString()}`);
+            setSyncStatus(`Laptop sync complete · ${jobs.length} saved jobs`);
         } catch (error) {
             setSyncStatus('Laptop server unavailable', true);
             console.warn('Local sync failed:', error);
