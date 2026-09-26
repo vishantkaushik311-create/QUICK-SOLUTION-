@@ -385,9 +385,6 @@
                 <h1 id="displayShopTitle">Quick Solutions</h1>
             </div>
         </div>
-        <div class="header-actions">
-            <button class="settings-btn" onclick="openSettings()">⚙️ Settings</button>
-        </div>
     </div>
     <div class="sub-header" id="subHeaderTitle">Inward Repairs & Service Center</div>
     <div class="desktop-sync-notice" id="desktopSyncNotice" role="status" aria-live="polite"></div>
@@ -774,7 +771,7 @@
             <button class="settings-btn" onclick="exportData()" style="flex:1;">💾 Backup</button>
             <button class="settings-btn" onclick="document.getElementById('adminModal').style.display='none'; document.getElementById('syncSettingsModal').style.display='flex';" style="flex:1;">← Settings</button>
         </div>
-        <div style="text-align:center; color:var(--text-sub); font-size:11px; margin-top:14px;">Quick Solutions • Admin Panel • <span id="adminVersionLabel">v1.1.12</span></div>
+        <div style="text-align:center; color:var(--text-sub); font-size:11px; margin-top:14px;">Quick Solutions • Admin Panel • <span id="adminVersionLabel">v1.1.13</span></div>
         <button class="btn-act btn-delete" onclick="closeAdminModal()" style="width:100%; margin-top:10px;">Close Admin Panel</button>
     </div>
 </div>
@@ -811,7 +808,7 @@
 </aside>
 
 <script>
-    const APP_VERSION = '1.1.12';
+    const APP_VERSION = '1.1.13';
 
     let shopConfig = {
         name: "Quick Solutions",
