@@ -73,12 +73,6 @@
             background: var(--card-bg); border: 1px solid var(--card-border);
             color: var(--text-main); padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 13px;
         }
-        .app-version-badge {
-            display: inline-flex; align-items: center; padding: 6px 9px;
-            border: 1px solid rgba(0, 225, 255, 0.35); border-radius: 999px;
-            background: rgba(0, 225, 255, 0.08); color: var(--accent-glow);
-            font-size: 11px; font-weight: 700; white-space: nowrap;
-        }
 
         .sub-header { color: var(--text-sub); font-size: 12px; margin-bottom: 16px; margin-left: 56px; }
         .desktop-sync-notice {
@@ -294,6 +288,12 @@
         .sidebar-profile-copy strong, .sidebar-profile-copy span { display: block; white-space: nowrap; }
         .sidebar-profile-copy strong { font-size: 12px; color: #fff; }
         .sidebar-profile-copy span { margin-top: 3px; font-size: 10px; color: var(--text-sub); }
+        .sidebar-version {
+            margin: 5px 2px 0 auto; padding: 3px 7px; width: fit-content;
+            border: 1px solid rgba(0, 225, 255, 0.25); border-radius: 999px;
+            background: rgba(0, 225, 255, 0.06); color: var(--accent-glow);
+            font-size: 9px; line-height: 1.2; font-weight: 700; white-space: nowrap;
+        }
         .app-sidebar.is-open { width: 270px; }
         .app-sidebar.is-open .sidebar-heading, .app-sidebar.is-open .sidebar-label,
         .app-sidebar.is-open .sidebar-profile-copy { display: block; }
@@ -303,6 +303,7 @@
         .app-sidebar.is-open .sidebar-collapse-icon { transform: rotate(180deg); }
         @media (min-width: 800px) {
             body { padding-left: 82px; }
+            .app-sidebar:not(.is-open) .sidebar-version { margin-right: auto; font-size: 7px; padding: 2px 4px; }
         }
         @media (max-width: 799px) {
             .app-menu-trigger { display: inline-flex; }
@@ -385,7 +386,6 @@
             </div>
         </div>
         <div class="header-actions">
-            <span class="app-version-badge" id="appVersionBadge">v1.1.11</span>
             <button class="settings-btn" onclick="openSettings()">⚙️ Settings</button>
         </div>
     </div>
@@ -774,7 +774,7 @@
             <button class="settings-btn" onclick="exportData()" style="flex:1;">💾 Backup</button>
             <button class="settings-btn" onclick="document.getElementById('adminModal').style.display='none'; document.getElementById('syncSettingsModal').style.display='flex';" style="flex:1;">← Settings</button>
         </div>
-        <div style="text-align:center; color:var(--text-sub); font-size:11px; margin-top:14px;">Quick Solutions • Admin Panel • <span id="adminVersionLabel">v1.1.11</span></div>
+        <div style="text-align:center; color:var(--text-sub); font-size:11px; margin-top:14px;">Quick Solutions • Admin Panel • <span id="adminVersionLabel">v1.1.12</span></div>
         <button class="btn-act btn-delete" onclick="closeAdminModal()" style="width:100%; margin-top:10px;">Close Admin Panel</button>
     </div>
 </div>
@@ -806,11 +806,12 @@
             <span class="sidebar-profile-mark">🛠️</span>
             <span class="sidebar-profile-copy"><strong id="sidebarProfileName">Quick Solutions</strong><span>Repair Service Center</span></span>
         </div>
+        <div class="sidebar-version" id="sidebarVersionLabel">v1.1.12</div>
     </div>
 </aside>
 
 <script>
-    const APP_VERSION = '1.1.11';
+    const APP_VERSION = '1.1.12';
 
     let shopConfig = {
         name: "Quick Solutions",
@@ -905,7 +906,7 @@
     }
 
     function initApp() {
-        document.getElementById('appVersionBadge').innerText = `v${APP_VERSION}`;
+        document.getElementById('sidebarVersionLabel').innerText = `v${APP_VERSION}`;
         document.getElementById('adminVersionLabel').innerText = `v${APP_VERSION}`;
         try {
             const savedConfig = localStorage.getItem('qs_shop_config');
