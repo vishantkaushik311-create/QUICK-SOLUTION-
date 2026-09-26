@@ -73,6 +73,12 @@
             background: var(--card-bg); border: 1px solid var(--card-border);
             color: var(--text-main); padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 13px;
         }
+        .app-version-badge {
+            display: inline-flex; align-items: center; padding: 6px 9px;
+            border: 1px solid rgba(0, 225, 255, 0.35); border-radius: 999px;
+            background: rgba(0, 225, 255, 0.08); color: var(--accent-glow);
+            font-size: 11px; font-weight: 700; white-space: nowrap;
+        }
 
         .sub-header { color: var(--text-sub); font-size: 12px; margin-bottom: 16px; margin-left: 56px; }
         .desktop-sync-notice {
@@ -379,6 +385,7 @@
             </div>
         </div>
         <div class="header-actions">
+            <span class="app-version-badge" id="appVersionBadge">v1.1.11</span>
             <button class="settings-btn" onclick="openSettings()">⚙️ Settings</button>
         </div>
     </div>
@@ -767,7 +774,7 @@
             <button class="settings-btn" onclick="exportData()" style="flex:1;">💾 Backup</button>
             <button class="settings-btn" onclick="document.getElementById('adminModal').style.display='none'; document.getElementById('syncSettingsModal').style.display='flex';" style="flex:1;">← Settings</button>
         </div>
-        <div style="text-align:center; color:var(--text-sub); font-size:11px; margin-top:14px;">Quick Solutions • Admin Panel • v1.1.10</div>
+        <div style="text-align:center; color:var(--text-sub); font-size:11px; margin-top:14px;">Quick Solutions • Admin Panel • <span id="adminVersionLabel">v1.1.11</span></div>
         <button class="btn-act btn-delete" onclick="closeAdminModal()" style="width:100%; margin-top:10px;">Close Admin Panel</button>
     </div>
 </div>
@@ -803,6 +810,8 @@
 </aside>
 
 <script>
+    const APP_VERSION = '1.1.11';
+
     let shopConfig = {
         name: "Quick Solutions",
         phone: "7838544106",
@@ -886,7 +895,7 @@
             const response = await fetch(updateManifestUrl, { cache: 'no-store' });
             if (!response.ok) return;
             const manifest = await response.json();
-            const currentVersion = '1.1.10';
+            const currentVersion = APP_VERSION;
             if (manifest.version && manifest.version !== currentVersion && confirm(`New update ${manifest.version} available. Update now?`)) {
                 window.location.replace('https://vishantkaushik311-create.github.io/QUICK-SOLUTION-/?v=' + encodeURIComponent(manifest.version) + '&t=' + Date.now());
             }
@@ -896,6 +905,8 @@
     }
 
     function initApp() {
+        document.getElementById('appVersionBadge').innerText = `v${APP_VERSION}`;
+        document.getElementById('adminVersionLabel').innerText = `v${APP_VERSION}`;
         try {
             const savedConfig = localStorage.getItem('qs_shop_config');
             if (savedConfig) shopConfig = { ...shopConfig, ...JSON.parse(savedConfig) };
