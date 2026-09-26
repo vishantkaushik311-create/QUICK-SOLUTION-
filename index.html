@@ -771,7 +771,7 @@
             <button class="settings-btn" onclick="exportData()" style="flex:1;">💾 Backup</button>
             <button class="settings-btn" onclick="document.getElementById('adminModal').style.display='none'; document.getElementById('syncSettingsModal').style.display='flex';" style="flex:1;">← Settings</button>
         </div>
-        <div style="text-align:center; color:var(--text-sub); font-size:11px; margin-top:14px;">Quick Solutions • Admin Panel • <span id="adminVersionLabel">v1.1.16</span></div>
+        <div style="text-align:center; color:var(--text-sub); font-size:11px; margin-top:14px;">Quick Solutions • Admin Panel • <span id="adminVersionLabel">v1.1.17</span></div>
         <button class="btn-act btn-delete" onclick="closeAdminModal()" style="width:100%; margin-top:10px;">Close Admin Panel</button>
     </div>
 </div>
@@ -808,7 +808,7 @@
 </aside>
 
 <script>
-    const APP_VERSION = '1.1.16';
+    const APP_VERSION = '1.1.17';
 
     let shopConfig = {
         name: "Quick Solutions",
@@ -1487,6 +1487,16 @@
         if (window.NativePrinter && typeof window.NativePrinter.printHtml === 'function') {
             window.NativePrinter.printHtml(html);
             return;
+        }
+        if (/Android/i.test(navigator.userAgent)) {
+            const printWindow = window.open('', '_blank');
+            if (printWindow) {
+                printWindow.onload = () => setTimeout(() => printWindow.print(), delay);
+                printWindow.document.open();
+                printWindow.document.write(html);
+                printWindow.document.close();
+                return;
+            }
         }
         const iframe = document.getElementById('printFrame');
         const doc = iframe.contentDocument || iframe.contentWindow.document;
