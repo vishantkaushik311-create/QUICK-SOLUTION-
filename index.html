@@ -771,7 +771,7 @@
             <button class="settings-btn" onclick="exportData()" style="flex:1;">💾 Backup</button>
             <button class="settings-btn" onclick="document.getElementById('adminModal').style.display='none'; document.getElementById('syncSettingsModal').style.display='flex';" style="flex:1;">← Settings</button>
         </div>
-        <div style="text-align:center; color:var(--text-sub); font-size:11px; margin-top:14px;">Quick Solutions • Admin Panel • <span id="adminVersionLabel">v1.1.14</span></div>
+        <div style="text-align:center; color:var(--text-sub); font-size:11px; margin-top:14px;">Quick Solutions • Admin Panel • <span id="adminVersionLabel">v1.1.16</span></div>
         <button class="btn-act btn-delete" onclick="closeAdminModal()" style="width:100%; margin-top:10px;">Close Admin Panel</button>
     </div>
 </div>
@@ -808,7 +808,7 @@
 </aside>
 
 <script>
-    const APP_VERSION = '1.1.14';
+    const APP_VERSION = '1.1.16';
 
     let shopConfig = {
         name: "Quick Solutions",
@@ -1483,14 +1483,24 @@
         if (!whatsappWindow) window.location.href = url;
     }
 
+    function printHtmlDocument(html, delay) {
+        if (window.NativePrinter && typeof window.NativePrinter.printHtml === 'function') {
+            window.NativePrinter.printHtml(html);
+            return;
+        }
+        const iframe = document.getElementById('printFrame');
+        const doc = iframe.contentDocument || iframe.contentWindow.document;
+        doc.open();
+        doc.write(html);
+        doc.close();
+        setTimeout(() => iframe.contentWindow.print(), delay);
+    }
+
     function printStickerDirect(jobOrId) {
         const job = typeof jobOrId === 'object' ? jobOrId : jobs.find(j => j.id === Number(jobOrId));
         if (!job) return;
         const stickerContent = `<!DOCTYPE html><html><head><style>@page { size: 50mm 30mm; margin: 0; } body { font-family: monospace; font-size: 10px; margin: 4px; color: #000; } .center { text-align: center; font-weight: bold; } .border { border-top: 1px dashed #000; margin: 2px 0; }</style></head><body><div class="center">${shopConfig.name}</div><div class="border"></div><div><strong>Job:</strong> ${job.jobNo} (${job.date})</div><div><strong>Cust:</strong> ${job.custName} (..${job.custMobile.slice(-4)})</div><div><strong>Model:</strong> ${job.deviceModel}</div><div><strong>Bal:</strong> ₹${job.balance}</div></body></html>`;
-        const iframe = document.getElementById('printFrame');
-        const doc = iframe.contentDocument || iframe.contentWindow.document;
-        doc.open(); doc.write(stickerContent); doc.close();
-        setTimeout(() => iframe.contentWindow.print(), 200);
+        printHtmlDocument(stickerContent, 200);
     }
 
     function printTicketDirect(jobOrId) {
@@ -1498,10 +1508,7 @@
         if (!job) return;
         const upiPayUrl = `upi://pay?pa=${encodeURIComponent(shopConfig.upi || '')}&pn=${encodeURIComponent(shopConfig.name || 'Shop')}&am=${job.balance}&cu=INR`;
         const printContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Invoice - ${job.jobNo}</title><style>@page { size: A4 portrait; margin: 15mm; } * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; } body { margin: 0; color: #111; background: #fff; width: 100%; } .wrapper { border: 2px solid #0b2239; border-radius: 8px; padding: 24px; } .header { display: flex; justify-content: space-between; border-bottom: 2px solid #0b2239; padding-bottom: 12px; margin-bottom: 16px; } .grid { width: 100%; border: 1px solid #ddd; margin-bottom: 16px; } .grid td { padding: 8px 12px; font-size: 13px; border-bottom: 1px solid #eee; } .table { width: 100%; border-collapse: collapse; margin-bottom: 16px; } .table th { background: #0b2239; color: #fff; padding: 8px; text-align: left; } .table td { padding: 10px; border-bottom: 1px solid #ddd; } .bottom { display: flex; justify-content: space-between; margin-top: 15px; }</style></head><body><div class="wrapper"><div class="header"><div><h2 style="margin:0; text-transform:uppercase;">${shopConfig.name}</h2><small>Repair Service Center | Call: ${shopConfig.phone}</small></div><div style="text-align:right;"><h3 style="margin:0; color:#0088ff;">REPAIR INVOICE</h3><div>Job No: <strong>${job.jobNo}</strong></div><div>Date: ${job.date}</div></div></div><table class="grid" cellpadding="0" cellspacing="0"><tr><td style="width:30%; background:#f8fafc;">Customer:</td><td><strong>${job.custName}</strong> (+91 ${job.custMobile})</td></tr><tr><td style="background:#f8fafc;">Device Model:</td><td>${job.deviceModel}</td></tr><tr><td style="background:#f8fafc;">Accessories:</td><td>${(job.checklist||[]).join(', ') || 'Only Device'}</td></tr><tr><td style="background:#f8fafc;">Reported Fault:</td><td>${job.problem || 'Service'}</td></tr></table><table class="table"><thead><tr><th>Description</th><th style="text-align:right;">Amount</th></tr></thead><tbody><tr><td>Hardware Repair & Component Diagnosis</td><td style="text-align:right;">₹${job.estimate}</td></tr></tbody></table><div class="bottom"><div id="printQRElement" style="text-align:center; border:1.5px dashed #0088ff; padding:10px; border-radius:8px; width:150px;"><div style="font-size:11px; font-weight:bold; margin-bottom:6px;">UPI Scan to Pay</div></div><div style="width:240px; font-size:13px;"><div style="display:flex; justify-content:space-between; margin:4px 0;"><span>Estimate:</span><span>₹${job.estimate}</span></div><div style="display:flex; justify-content:space-between; margin:4px 0;"><span>Advance:</span><span style="color:green;">-₹${job.advance}</span></div><div style="display:flex; justify-content:space-between; margin:6px 0; font-weight:bold; font-size:16px; color:red; border-top:1px solid #000; padding-top:4px;"><span>Balance Due:</span><span>₹${job.balance}</span></div></div></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script><script>new QRCode(document.getElementById("printQRElement"), { text: "${upiPayUrl}", width: 120, height: 120, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });<\/script></body></html>`;
-        const iframe = document.getElementById('printFrame');
-        const doc = iframe.contentDocument || iframe.contentWindow.document;
-        doc.open(); doc.write(printContent); doc.close();
-        setTimeout(() => iframe.contentWindow.print(), 500);
+        printHtmlDocument(printContent, 500);
     }
 
     function renderAll() {
