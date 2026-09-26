@@ -33,19 +33,25 @@
             background-image: radial-gradient(circle at 50% 0%, #0d213a 0%, #050a14 70%);
             color: var(--text-main); 
             margin: 0; padding: 0; 
-            padding-bottom: 80px; 
+            padding-bottom: 20px; 
             min-height: 100vh;
         }
         @media (max-width: 799px) {
             body {
                 padding-top: env(safe-area-inset-top, 24px);
-                padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+                padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
             }
         }
 
         .app-container { max-width: 1100px; margin: 0 auto; padding: 16px; }
         .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; flex-wrap: wrap; gap: 8px; }
         .brand-box { display: flex; align-items: center; gap: 12px; }
+        .header-brand-group { display: flex; align-items: center; gap: 10px; }
+        .app-menu-trigger {
+            display: none; width: 40px; height: 40px; flex: 0 0 40px; align-items: center;
+            justify-content: center; background: var(--card-bg); border: 1px solid var(--card-border);
+            color: var(--text-main); border-radius: 12px; font-size: 20px; cursor: pointer;
+        }
         
         .logo-wrapper {
             width: 44px; height: 44px; border-radius: 12px;
@@ -211,19 +217,91 @@
         .info-label { color: var(--text-sub); }
         .info-val { font-weight: 600; color: #fff; }
 
-        .bottom-nav {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            height: 60px; background-color: var(--nav-bg); border-top: 1px solid var(--card-border);
-            display: flex; justify-content: space-around; align-items: center; z-index: 50;
+        .sidebar-scrim {
+            display: none; position: fixed; inset: 0; z-index: 70;
+            background: rgba(2, 6, 12, 0.68); backdrop-filter: blur(3px);
+        }
+        .sidebar-scrim.visible { display: block; }
+        .app-sidebar {
+            position: fixed; z-index: 80; top: 14px; bottom: 14px; left: 14px; width: 68px;
+            display: flex; flex-direction: column; overflow: hidden;
+            background: linear-gradient(165deg, rgba(18, 30, 54, 0.98), rgba(8, 16, 29, 0.98));
+            border: 1px solid rgba(0, 136, 255, 0.42); border-radius: 20px;
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.42); transition: width 220ms ease, transform 220ms ease;
+        }
+        .sidebar-head {
+            display: flex; align-items: center; gap: 8px; min-height: 72px; padding: 10px;
+            border-bottom: 1px solid var(--card-border);
+        }
+        .sidebar-mark {
+            width: 42px; height: 42px; flex: 0 0 42px; display: grid; place-items: center;
+            border-radius: 13px; background: linear-gradient(135deg, #0088ff, #00bfe8);
+            color: #00101c; font-size: 20px; font-weight: 800;
+        }
+        .sidebar-heading { min-width: 0; display: none; }
+        .sidebar-heading strong { display: block; color: #fff; font-size: 15px; white-space: nowrap; }
+        .sidebar-heading span { display: block; margin-top: 3px; color: var(--text-sub); font-size: 11px; white-space: nowrap; }
+        .sidebar-expand {
+            display: grid; place-items: center; width: 36px; height: 42px; flex: 0 0 36px;
+            background: transparent; border: 1px solid transparent; border-radius: 12px;
+            color: var(--text-main); font-size: 20px; cursor: pointer;
+        }
+        .app-sidebar:not(.is-open) .sidebar-head { justify-content: center; padding: 10px; }
+        .app-sidebar:not(.is-open) .sidebar-mark { display: none; }
+        .app-sidebar:not(.is-open) .sidebar-expand { width: 42px; flex-basis: 42px; }
+        .sidebar-expand:hover, .sidebar-nav-item:hover { background: #16243d; border-color: var(--card-border); }
+        .sidebar-nav { display: flex; flex: 1; flex-direction: column; gap: 7px; padding: 14px 10px; }
+        .sidebar-nav-item {
+            display: flex; align-items: center; gap: 14px; width: 100%; min-height: 48px;
+            padding: 4px 10px; overflow: hidden; white-space: nowrap; text-align: left;
+            background: transparent; border: 1px solid transparent; border-radius: 13px;
+            color: var(--text-sub); font-size: 14px; cursor: pointer;
+        }
+        .sidebar-nav-item.active {
+            color: #fff; background: linear-gradient(100deg, rgba(0, 136, 255, 0.24), rgba(0, 225, 255, 0.08));
+            border-color: rgba(0, 136, 255, 0.48); box-shadow: inset 3px 0 var(--accent-blue);
+        }
+        .sidebar-icon { display: grid; place-items: center; width: 26px; height: 32px; flex: 0 0 26px; font-size: 19px; }
+        .sidebar-label { display: none; }
+        .sidebar-divider { height: 1px; margin: 4px 3px; background: var(--card-border); }
+        .sidebar-footer { padding: 10px; border-top: 1px solid var(--card-border); }
+        .sidebar-profile {
+            display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 4px 10px;
+            border-radius: 13px; color: var(--text-main);
+        }
+        .sidebar-profile-mark { display: grid; place-items: center; width: 26px; height: 32px; flex: 0 0 26px; font-size: 20px; }
+        .sidebar-profile-copy { display: none; min-width: 0; }
+        .sidebar-close-icon { display: none; font-size: 25px; line-height: 1; }
+        .sidebar-profile-copy strong, .sidebar-profile-copy span { display: block; white-space: nowrap; }
+        .sidebar-profile-copy strong { font-size: 12px; color: #fff; }
+        .sidebar-profile-copy span { margin-top: 3px; font-size: 10px; color: var(--text-sub); }
+        .app-sidebar.is-open { width: 270px; }
+        .app-sidebar.is-open .sidebar-heading, .app-sidebar.is-open .sidebar-label,
+        .app-sidebar.is-open .sidebar-profile-copy { display: block; }
+        .app-sidebar.is-open .sidebar-head { justify-content: flex-start; }
+        .app-sidebar.is-open .sidebar-expand { margin-left: auto; }
+        .app-sidebar.is-open .sidebar-nav-item { gap: 14px; }
+        .app-sidebar.is-open .sidebar-collapse-icon { transform: rotate(180deg); }
+        @media (min-width: 800px) {
+            body { padding-left: 82px; }
         }
         @media (max-width: 799px) {
-            .bottom-nav {
-                height: calc(60px + env(safe-area-inset-bottom, 0px));
-                padding-bottom: env(safe-area-inset-bottom, 0px);
+            .app-menu-trigger { display: inline-flex; }
+            .header-brand-group { min-width: 0; }
+            .brand-box { gap: 8px; }
+            .brand-box h1 { font-size: 18px; }
+            .logo-wrapper { width: 40px; height: 40px; }
+            .app-sidebar {
+                top: max(12px, env(safe-area-inset-top, 12px)); bottom: max(12px, env(safe-area-inset-bottom, 12px));
+                left: 12px; width: min(290px, calc(100vw - 40px)); transform: translateX(calc(-100% - 16px));
             }
+            .app-sidebar.is-open { width: min(290px, calc(100vw - 40px)); transform: translateX(0); }
+            .app-sidebar .sidebar-heading, .app-sidebar .sidebar-label, .app-sidebar .sidebar-profile-copy { display: block; }
+            .app-sidebar .sidebar-head { justify-content: flex-start; }
+            .app-sidebar .sidebar-expand { margin-left: auto; }
+            .app-sidebar .sidebar-collapse-icon { display: none; }
+            .app-sidebar .sidebar-close-icon { display: inline; }
         }
-        .nav-item { display: flex; flex-direction: column; align-items: center; font-size: 10px; color: var(--text-sub); cursor: pointer; }
-        .nav-item.active { color: var(--accent-glow); background-color: #121e36; padding: 6px 14px; border-radius: 16px; border: 1px solid var(--card-border); }
         .admin-profile {
             display: flex; align-items: center; gap: 12px; padding: 14px;
             background: linear-gradient(135deg, #121e36, #0d1527);
@@ -277,11 +355,14 @@
 
 <div class="app-container">
     <div class="top-header">
-        <div class="brand-box">
-            <div class="logo-wrapper">
-                <img id="shopLogoImg" class="shop-logo" src="https://cdn-icons-png.flaticon.com/512/2933/2933245.png" alt="Logo">
+        <div class="header-brand-group">
+            <button class="app-menu-trigger" id="appMenuTrigger" onclick="toggleAppMenu()" aria-label="Open navigation menu" aria-expanded="false">☰</button>
+            <div class="brand-box">
+                <div class="logo-wrapper">
+                    <img id="shopLogoImg" class="shop-logo" src="https://cdn-icons-png.flaticon.com/512/2933/2933245.png" alt="Logo">
+                </div>
+                <h1 id="displayShopTitle">Quick Solutions</h1>
             </div>
-            <h1 id="displayShopTitle">Quick Solutions</h1>
         </div>
         <div class="header-actions">
             <button class="settings-btn" onclick="openSettings()">⚙️ Settings</button>
@@ -671,18 +752,40 @@
             <button class="settings-btn" onclick="exportData()" style="flex:1;">💾 Backup</button>
             <button class="settings-btn" onclick="document.getElementById('adminModal').style.display='none'; document.getElementById('syncSettingsModal').style.display='flex';" style="flex:1;">← Settings</button>
         </div>
-        <div style="text-align:center; color:var(--text-sub); font-size:11px; margin-top:14px;">Quick Solutions • Admin Panel • v1.1.7</div>
+        <div style="text-align:center; color:var(--text-sub); font-size:11px; margin-top:14px;">Quick Solutions • Admin Panel • v1.1.8</div>
         <button class="btn-act btn-delete" onclick="closeAdminModal()" style="width:100%; margin-top:10px;">Close Admin Panel</button>
     </div>
 </div>
 
-<!-- Navigation Bar -->
-<div class="bottom-nav">
-    <div onclick="quickCallAction()" class="nav-item"><span style="font-size:16px;">📞</span><span>Calls</span></div>
-    <div id="navInward" onclick="switchNavTab('inward')" class="nav-item active"><span style="font-size:16px;">🔧</span><span>Inward</span></div>
-    <div id="navDealers" onclick="switchNavTab('dealers')" class="nav-item"><span style="font-size:16px;">🤝</span><span>Dealers</span></div>
-    <div id="navPricelist" onclick="switchNavTab('pricelist')" class="nav-item"><span style="font-size:16px;">📋</span><span>Pricelist</span></div>
-</div>
+<!-- Collapsible app navigation -->
+<div class="sidebar-scrim" id="sidebarScrim" onclick="closeAppMenu()" aria-hidden="true"></div>
+<aside class="app-sidebar" id="appSidebar" aria-label="Main navigation">
+    <div class="sidebar-head">
+        <div class="sidebar-mark" aria-hidden="true">QS</div>
+        <div class="sidebar-heading">
+            <strong id="sidebarShopName">Quick Solutions</strong>
+            <span>Repair Service Center</span>
+        </div>
+        <button class="sidebar-expand" id="sidebarExpandButton" onclick="toggleSidebarExpanded()" aria-label="Expand navigation" aria-expanded="false">
+            <span class="sidebar-collapse-icon">☰</span><span class="sidebar-close-icon">×</span>
+        </button>
+    </div>
+    <nav class="sidebar-nav">
+        <button class="sidebar-nav-item" onclick="selectQuickCall()" aria-label="Call latest customer"><span class="sidebar-icon">📞</span><span class="sidebar-label">Calls</span></button>
+        <div class="sidebar-divider"></div>
+        <button id="navInward" class="sidebar-nav-item active" data-tab="inward" onclick="switchNavTab('inward')" aria-label="Inward repairs"><span class="sidebar-icon">🔧</span><span class="sidebar-label">Inward</span></button>
+        <button id="navDealers" class="sidebar-nav-item" data-tab="dealers" onclick="switchNavTab('dealers')" aria-label="Dealers"><span class="sidebar-icon">🤝</span><span class="sidebar-label">Dealers</span></button>
+        <button id="navPricelist" class="sidebar-nav-item" data-tab="pricelist" onclick="switchNavTab('pricelist')" aria-label="Pricelist"><span class="sidebar-icon">📋</span><span class="sidebar-label">Pricelist</span></button>
+        <div class="sidebar-divider"></div>
+        <button class="sidebar-nav-item" onclick="openSettings(); closeAppMenu();" aria-label="Settings"><span class="sidebar-icon">⚙️</span><span class="sidebar-label">Settings</span></button>
+    </nav>
+    <div class="sidebar-footer">
+        <div class="sidebar-profile">
+            <span class="sidebar-profile-mark">🛠️</span>
+            <span class="sidebar-profile-copy"><strong id="sidebarProfileName">Quick Solutions</strong><span>Repair Service Center</span></span>
+        </div>
+    </div>
+</aside>
 
 <script>
     let shopConfig = {
@@ -765,7 +868,7 @@
             const response = await fetch(updateManifestUrl, { cache: 'no-store' });
             if (!response.ok) return;
             const manifest = await response.json();
-            const currentVersion = '1.1.7';
+            const currentVersion = '1.1.8';
             if (manifest.version && manifest.version !== currentVersion && confirm(`New update ${manifest.version} available. Update now?`)) {
                 window.location.replace('https://vishantkaushik311-create.github.io/QUICK-SOLUTION-/?v=' + encodeURIComponent(manifest.version) + '&t=' + Date.now());
             }
@@ -888,6 +991,8 @@
 
     function updateShopInfoDisplay() {
         document.getElementById('displayShopTitle').innerText = shopConfig.name || "Quick Solutions";
+        document.getElementById('sidebarShopName').innerText = shopConfig.name || "Quick Solutions";
+        document.getElementById('sidebarProfileName').innerText = shopConfig.name || "Quick Solutions";
         const logoImg = document.getElementById('shopLogoImg');
         const defaultLogo = "https://cdn-icons-png.flaticon.com/512/2933/2933245.png";
         logoImg.onerror = function() { this.src = defaultLogo; };
@@ -899,10 +1004,50 @@
         document.getElementById('inwardViewSection').style.display = (tab === 'inward') ? 'block' : 'none';
         document.getElementById('priceListViewSection').style.display = (tab === 'pricelist') ? 'block' : 'none';
         document.getElementById('dealerViewSection').style.display = (tab === 'dealers') ? 'block' : 'none';
-        document.getElementById('navInward').className = `nav-item ${tab === 'inward' ? 'active' : ''}`;
-        document.getElementById('navPricelist').className = `nav-item ${tab === 'pricelist' ? 'active' : ''}`;
-        document.getElementById('navDealers').className = `nav-item ${tab === 'dealers' ? 'active' : ''}`;
+        document.querySelectorAll('.sidebar-nav-item[data-tab]').forEach(item => {
+            const isActive = item.dataset.tab === tab;
+            item.classList.toggle('active', isActive);
+            if (isActive) item.setAttribute('aria-current', 'page');
+            else item.removeAttribute('aria-current');
+        });
+        closeAppMenu();
     }
+
+    function toggleAppMenu() {
+        const isOpen = document.getElementById('appSidebar').classList.toggle('is-open');
+        document.getElementById('sidebarScrim').classList.toggle('visible', isOpen);
+        document.getElementById('appMenuTrigger').setAttribute('aria-expanded', String(isOpen));
+        document.getElementById('sidebarExpandButton').setAttribute('aria-expanded', String(isOpen));
+        document.getElementById('sidebarExpandButton').setAttribute('aria-label', isOpen ? 'Close navigation' : 'Expand navigation');
+    }
+
+    function toggleSidebarExpanded() {
+        const sidebar = document.getElementById('appSidebar');
+        if (window.matchMedia('(max-width: 799px)').matches) {
+            closeAppMenu();
+            return;
+        }
+        const isOpen = sidebar.classList.toggle('is-open');
+        document.getElementById('sidebarExpandButton').setAttribute('aria-expanded', String(isOpen));
+        document.getElementById('sidebarExpandButton').setAttribute('aria-label', isOpen ? 'Collapse navigation' : 'Expand navigation');
+    }
+
+    function closeAppMenu() {
+        document.getElementById('appSidebar').classList.remove('is-open');
+        document.getElementById('sidebarScrim').classList.remove('visible');
+        document.getElementById('appMenuTrigger').setAttribute('aria-expanded', 'false');
+        document.getElementById('sidebarExpandButton').setAttribute('aria-expanded', 'false');
+        document.getElementById('sidebarExpandButton').setAttribute('aria-label', 'Expand navigation');
+    }
+
+    function selectQuickCall() {
+        closeAppMenu();
+        quickCallAction();
+    }
+
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape') closeAppMenu();
+    });
 
     // --- 1-CLICK EXCEL / CSV EXPORT ---
     function exportToCSV() {
