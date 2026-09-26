@@ -771,7 +771,7 @@
             <button class="settings-btn" onclick="exportData()" style="flex:1;">💾 Backup</button>
             <button class="settings-btn" onclick="document.getElementById('adminModal').style.display='none'; document.getElementById('syncSettingsModal').style.display='flex';" style="flex:1;">← Settings</button>
         </div>
-        <div style="text-align:center; color:var(--text-sub); font-size:11px; margin-top:14px;">Quick Solutions • Admin Panel • <span id="adminVersionLabel">v1.1.13</span></div>
+        <div style="text-align:center; color:var(--text-sub); font-size:11px; margin-top:14px;">Quick Solutions • Admin Panel • <span id="adminVersionLabel">v1.1.14</span></div>
         <button class="btn-act btn-delete" onclick="closeAdminModal()" style="width:100%; margin-top:10px;">Close Admin Panel</button>
     </div>
 </div>
@@ -808,7 +808,7 @@
 </aside>
 
 <script>
-    const APP_VERSION = '1.1.13';
+    const APP_VERSION = '1.1.14';
 
     let shopConfig = {
         name: "Quick Solutions",
@@ -1357,12 +1357,14 @@
             estimate: est, advance: adv, balance: bal, status
         };
 
+        let savedJob = null;
         if (currentEditId !== null) {
             const idx = jobs.findIndex(j => j.id === currentEditId);
             if (idx !== -1) {
                 const oldJob = jobs[idx];
                 const readyDate = (status === 'Ready' && oldJob.status !== 'Ready') ? Date.now() : (status === 'Ready' ? (oldJob.readyDate || Date.now()) : null);
                 jobs[idx] = { ...oldJob, ...jobData, readyDate };
+                savedJob = jobs[idx];
             }
         } else {
             const newJob = {
@@ -1372,9 +1374,13 @@
                 date: new Date().toLocaleDateString('en-IN')
             };
             jobs.unshift(newJob);
+            savedJob = newJob;
             if (adv > 0) cashEntries.unshift({ id: Date.now() + 1, type: 'IN', amount: adv, desc: `Advance - ${newJob.jobNo} (${newJob.custName})`, date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
         }
         saveAllData(); closeModal(); renderAll();
+        if (currentEditId === null && savedJob && confirm('Job saved. WhatsApp par customer ko receiving receipt bhejein?')) {
+            openWhatsAppReceiptMessage(savedJob);
+        }
     }
 
     function getReadyDaysPassed(job) {
@@ -1393,7 +1399,7 @@
         msg += `Namaste *${job.custName}* ji,\n`;
         msg += `Aapka device *${job.deviceModel}* (Job Card: *${job.jobNo}*) repair hokar ${days === 0 ? "aaj" : days + " din se"} ready hai.\n\n`;
         msg += `Due Balance: *₹${job.balance}*\nKripya shop par aakar collect kar lein.\n\n📞 Support: +91 ${shopConfig.phone}`;
-        window.open(`https://wa.me/91${job.custMobile}?text=${encodeURIComponent(msg)}`, '_blank');
+        openWhatsAppMessage(job, msg);
     }
 
     function viewDetails(id) {
@@ -1427,7 +1433,8 @@
         badge.innerText = job.status; badge.className = `card-badge badge-${job.status.toLowerCase().replace(' ', '-')}`;
 
         document.getElementById('vCallBtn').href = `tel:${job.custMobile}`;
-        document.getElementById('vWaBtn').onclick = () => openWhatsAppStatusMessage(job);
+        document.getElementById('vWaBtn').innerText = '📩 Send Receipt';
+        document.getElementById('vWaBtn').onclick = () => openWhatsAppReceiptMessage(job);
         document.getElementById('vQrBtn').onclick = () => showQR(job); // Linked properly!
         document.getElementById('vPrintBtn').onclick = () => printTicketDirect(job);
         document.getElementById('vPrintStickerBtn').onclick = () => printStickerDirect(job);
@@ -1445,7 +1452,35 @@
         if (job.status === 'Ready') msg += `🎉 Aapka device *${job.deviceModel}* (${job.jobNo}) ready hai.\n💳 Due Balance: ₹${job.balance}`;
         else msg += `Aapka repair job *${job.jobNo}* (${job.deviceModel}) status: *${job.status}* | Balance: ₹${job.balance}`;
         msg += `\n\n📞 Support: +91 ${shopConfig.phone}`;
-        window.open(`https://wa.me/91${job.custMobile}?text=${encodeURIComponent(msg)}`, '_blank');
+        openWhatsAppMessage(job, msg);
+    }
+
+    function openWhatsAppReceiptMessage(jobOrId) {
+        const job = typeof jobOrId === 'object' ? jobOrId : jobs.find(j => j.id === Number(jobOrId));
+        if (!job) return;
+        let msg = `🏪 *${shopConfig.name.toUpperCase()}* - Device Receiving Receipt\n\n`;
+        msg += `Namaste *${job.custName}* ji,\nAapka device humein repair ke liye receive ho gaya hai.\n\n`;
+        msg += `🧾 Job Card: *${job.jobNo}*\n📱 Device: *${job.deviceModel}*\n`;
+        msg += `🛠️ Reported issue: ${job.problem || 'Not specified'}\n`;
+        msg += `📦 Received accessories: ${(job.checklist && job.checklist.length) ? job.checklist.join(', ') : 'Only device'}\n`;
+        msg += `💰 Estimate: ₹${job.estimate}\n💵 Advance: ₹${job.advance}\n💳 Balance due: ₹${job.balance}\n`;
+        msg += `📅 Received: ${job.date || new Date().toLocaleDateString('en-IN')}\n\n`;
+        msg += `Repair updates ke liye hum aapse sampark karenge.\n📞 Support: +91 ${shopConfig.phone}`;
+        openWhatsAppMessage(job, msg);
+    }
+
+    function openWhatsAppMessage(job, message) {
+        let phone = String(job.custMobile || '').replace(/\D/g, '');
+        if (phone.startsWith('00')) phone = phone.slice(2);
+        if (phone.length === 11 && phone.startsWith('0')) phone = phone.slice(1);
+        if (phone.length === 10) phone = `91${phone}`;
+        if (phone.length < 10 || phone.length > 15) {
+            alert('Customer mobile number valid nahi hai. Job edit karke country code ke saath sahi number save karein.');
+            return;
+        }
+        const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+        const whatsappWindow = window.open(url, '_blank');
+        if (!whatsappWindow) window.location.href = url;
     }
 
     function printStickerDirect(jobOrId) {
@@ -1530,7 +1565,7 @@
                 <div class="card-actions">
                     <button class="btn-act btn-edit" onclick="event.stopPropagation(); openModal(${j.id})">✏️ Edit</button>
                     <button class="btn-act btn-qr" onclick="event.stopPropagation(); showQR(${j.id})">📲 QR</button>
-                    <button class="btn-act btn-wa" onclick="event.stopPropagation(); openWhatsAppStatusMessage(${j.id})">💬 WA</button>
+                    <button class="btn-act btn-wa" onclick="event.stopPropagation(); openWhatsAppReceiptMessage(${j.id})">📩 Receipt</button>
                     <button class="btn-act btn-print" onclick="event.stopPropagation(); printTicketDirect(${j.id})">🖨️ Print</button>
                 </div>
                 ${isReadySection ? `<div class="card-actions" style="margin-top:8px;"><button class="btn-act btn-wa" style="width:100%;" onclick="event.stopPropagation(); sendReadyPickupReminder(${j.id})">🔔 Send Pickup Reminder</button></div>` : ''}
@@ -1548,7 +1583,7 @@
                 <td>
                     <button class="btn-act btn-edit" onclick="event.stopPropagation(); openModal(${j.id})">Edit</button>
                     <button class="btn-act btn-qr" onclick="event.stopPropagation(); showQR(${j.id})">QR</button>
-                    <button class="btn-act btn-wa" onclick="event.stopPropagation(); openWhatsAppStatusMessage(${j.id})">WA</button>
+                    <button class="btn-act btn-wa" onclick="event.stopPropagation(); openWhatsAppReceiptMessage(${j.id})">Receipt</button>
                     <button class="btn-act btn-print" onclick="event.stopPropagation(); printTicketDirect(${j.id})">Print</button>
                     ${isReadySection ? `<button class="btn-act btn-wa" style="margin-left:4px;" onclick="event.stopPropagation(); sendReadyPickupReminder(${j.id})">Remind</button>` : ''}
                 </td>
