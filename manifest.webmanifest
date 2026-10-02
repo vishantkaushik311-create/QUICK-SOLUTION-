@@ -1,0 +1,19 @@
+{
+  "id": "./",
+  "name": "Quick Solutions Repair Manager",
+  "short_name": "Quick Solutions",
+  "description": "Repair jobs, customer records, invoices, and shop management.",
+  "start_url": "./?source=installed-app",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#050a14",
+  "theme_color": "#050a14",
+  "icons": [
+    {
+      "src": "./app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
