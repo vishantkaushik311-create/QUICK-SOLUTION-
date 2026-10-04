@@ -571,7 +571,7 @@
 
             <div class="form-group">
                 <label style="color:var(--accent-glow);">📸 Device Physical Condition (Click/Upload Photos Proof)</label>
-                <input type="file" id="conditionPhotosInput" accept="image/*" multiple capture="environment" onchange="handleConditionPhotos(event)">
+                <input type="file" id="conditionPhotosInput" accept="image/*" multiple onchange="handleConditionPhotos(event)">
                 <div class="condition-photos-strip" id="formPhotosPreviewStrip"></div>
             </div>
 
@@ -821,7 +821,7 @@
 </aside>
 
 <script>
-    const APP_VERSION = '1.1.22';
+    const APP_VERSION = '1.1.27';
 
     let shopConfig = {
         name: "Quick Solutions",
@@ -887,6 +887,9 @@
     let currentTab = 'inward';
     let currentEditId = null;
     let tempUploadedPhotos = [];
+    let pendingPhotoProcessing = Promise.resolve();
+    let photoProcessingError = null;
+    let jobSaveInProgress = false;
 
     // QR Timers
     let qrTimerInterval = null;
@@ -1243,14 +1246,14 @@
     }
 
     // --- PHOTO HANDLING & COMPRESSION ---
-    function handleConditionPhotos(e) {
-        const files = Array.from(e.target.files);
-        if (!files.length) return;
-        files.forEach(file => {
+    function compressConditionPhoto(file) {
+        return new Promise((resolve, reject) => {
             const reader = new FileReader();
-            reader.onload = function(evt) {
+            reader.onerror = () => reject(new Error(`Could not read photo: ${file.name}`));
+            reader.onload = () => {
                 const img = new Image();
-                img.onload = function() {
+                img.onerror = () => reject(new Error(`Could not open photo: ${file.name}`));
+                img.onload = () => {
                     const canvas = document.createElement('canvas');
                     const maxDim = 800;
                     let width = img.width, height = img.height;
@@ -1258,13 +1261,34 @@
                     else if (height > maxDim) { width *= maxDim / height; height = maxDim; }
                     canvas.width = width; canvas.height = height;
                     const ctx = canvas.getContext('2d');
+                    if (!ctx) {
+                        reject(new Error('Photo could not be prepared for saving.'));
+                        return;
+                    }
                     ctx.drawImage(img, 0, 0, width, height);
-                    tempUploadedPhotos.push(canvas.toDataURL('image/jpeg', 0.65));
-                    renderFormPhotosPreview();
+                    resolve(canvas.toDataURL('image/jpeg', 0.65));
                 };
-                img.src = evt.target.result;
+                img.src = reader.result;
             };
             reader.readAsDataURL(file);
+        });
+    }
+
+    function handleConditionPhotos(e) {
+        const input = e.target;
+        const files = Array.from(input.files || []);
+        input.value = '';
+        if (!files.length) return;
+        photoProcessingError = null;
+        pendingPhotoProcessing = pendingPhotoProcessing.then(async () => {
+            for (const file of files) {
+                tempUploadedPhotos.push(await compressConditionPhoto(file));
+                renderFormPhotosPreview();
+            }
+        }).catch(error => {
+            photoProcessingError = error;
+            console.error('Photo processing failed:', error);
+            alert(`Photo save nahi ho payi: ${error.message}`);
         });
     }
 
@@ -1315,6 +1339,7 @@
     function openModal(jobId = null) {
         currentEditId = jobId; 
         tempUploadedPhotos = [];
+        photoProcessingError = null;
         document.getElementById('jobForm').reset();
         document.getElementById('formPhotosPreviewStrip').innerHTML = '';
 
@@ -1352,8 +1377,18 @@
 
     function closeModal() { document.getElementById('entryModal').style.display = 'none'; }
 
-    function saveJob(e) {
+    async function saveJob(e) {
         e.preventDefault();
+        if (jobSaveInProgress) return;
+        jobSaveInProgress = true;
+        const saveButton = document.querySelector('#jobForm button[type="submit"]');
+        if (saveButton) saveButton.disabled = true;
+        try {
+        await pendingPhotoProcessing;
+        if (photoProcessingError) {
+            alert('Photo process nahi hui. Photo dobara select karke save karein.');
+            return;
+        }
         const est = parseFloat(document.getElementById('estimate').value) || 0;
         const adv = parseFloat(document.getElementById('advance').value) || 0;
         const bal = Math.max(0, est - adv);
@@ -1399,6 +1434,10 @@
         saveAllData(); closeModal(); renderAll();
         if (currentEditId === null && savedJob && confirm('Job saved. WhatsApp par customer ko receiving receipt bhejein?')) {
             openWhatsAppReceiptMessage(savedJob);
+        }
+        } finally {
+            jobSaveInProgress = false;
+            if (saveButton) saveButton.disabled = false;
         }
     }
 
