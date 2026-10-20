@@ -244,6 +244,17 @@
             font-size: 16px; font-weight: 800; cursor: pointer;
         }
         .hosted-update-footer { margin: 14px 0 0; color: #9699a8; font-size: 12px; }
+        .customer-history-panel {
+            display: none; margin: -4px 0 14px; padding: 12px;
+            border: 1px solid var(--card-border); border-radius: 10px; background: #080f1b;
+        }
+        .customer-history-list { display: grid; gap: 8px; max-height: 190px; overflow-y: auto; }
+        .customer-history-item {
+            padding: 9px 10px; border-radius: 8px; border: 1px solid var(--card-border);
+            background: var(--card-bg); font-size: 12px; line-height: 1.5;
+        }
+        .customer-history-item strong { color: var(--accent-glow); }
+        .customer-history-muted { color: var(--text-sub); }
         .form-group { margin-bottom: 12px; }
         .form-group label { display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 4px; }
         .form-group input, .form-group select, .form-group textarea {
@@ -646,7 +657,11 @@
         <form id="jobForm" onsubmit="saveJob(event)">
             <div class="form-group"><label>Job Card No *</label><input type="text" id="jobNo" required readonly style="color:var(--accent-glow); font-weight:bold;"></div>
             <div class="form-group"><label>Customer Name *</label><input type="text" id="custName" required placeholder="Customer Name"></div>
-            <div class="form-group"><label>Mobile Number *</label><input type="tel" id="custMobile" required placeholder="Mobile No."></div>
+            <div class="form-group"><label>Mobile Number *</label><input type="tel" id="custMobile" required placeholder="Mobile No." oninput="showCustomerHistory()"></div>
+            <div id="customerHistoryPanel" class="customer-history-panel" aria-live="polite">
+                <strong id="customerHistoryTitle" style="display:block; margin-bottom:8px; color:var(--accent-glow);">🕘 Previous Repair History</strong>
+                <div id="customerHistoryList" class="customer-history-list"></div>
+            </div>
             <div class="form-group"><label>Device Model *</label><input type="text" id="deviceModel" required placeholder="e.g. HP EliteBook 840 G1"></div>
             
             <div class="form-group">
@@ -948,7 +963,7 @@
 </aside>
 
 <script>
-    const APP_VERSION = '1.1.29';
+    const APP_VERSION = '1.1.30';
 
     let shopConfig = {
         name: "Quick Solutions",
@@ -1774,6 +1789,73 @@
         return '#' + nextNum;
     }
 
+    function normalizeCustomerPhone(value) {
+        let digits = String(value || '').replace(/\D/g, '');
+        if (digits.length === 11 && digits.startsWith('0')) digits = digits.slice(1);
+        if (digits.length === 12 && digits.startsWith('91')) digits = digits.slice(2);
+        return digits.length === 10 ? digits : '';
+    }
+
+    function showCustomerHistory() {
+        const panel = document.getElementById('customerHistoryPanel');
+        const list = document.getElementById('customerHistoryList');
+        const phone = normalizeCustomerPhone(document.getElementById('custMobile').value);
+        list.replaceChildren();
+        if (!phone) {
+            panel.style.display = 'none';
+            return;
+        }
+
+        const previousJobs = jobs
+            .filter(job => job.id !== currentEditId && normalizeCustomerPhone(job.custMobile) === phone)
+            .sort((a, b) => (Number(b.updatedAt) || Number(b.id) || 0) - (Number(a.updatedAt) || Number(a.id) || 0));
+
+        panel.style.display = 'block';
+        document.getElementById('customerHistoryTitle').textContent =
+            `🕘 Previous Repair History · ${previousJobs.length} job${previousJobs.length === 1 ? '' : 's'}`;
+
+        if (!previousJobs.length) {
+            const empty = document.createElement('div');
+            empty.className = 'customer-history-item customer-history-muted';
+            empty.textContent = 'Is number par koi purana repair job nahi mila.';
+            list.append(empty);
+            return;
+        }
+
+        previousJobs.forEach(job => {
+            const item = document.createElement('div');
+            item.className = 'customer-history-item';
+
+            const heading = document.createElement('strong');
+            heading.textContent = `${job.jobNo || 'Job'} · ${job.deviceModel || 'Device'}`;
+            item.append(heading);
+
+            const details = document.createElement('div');
+            details.className = 'customer-history-muted';
+            details.textContent = `${job.date || 'Date unavailable'} · ${job.status || 'Status unavailable'}`;
+            item.append(details);
+
+            if (job.problem) {
+                const problem = document.createElement('div');
+                problem.textContent = `Issue: ${job.problem}`;
+                item.append(problem);
+            }
+            if (job.techNotes) {
+                const notes = document.createElement('div');
+                notes.className = 'customer-history-muted';
+                notes.textContent = `Work/diagnosis: ${job.techNotes}`;
+                item.append(notes);
+            }
+            if (isAdminMode()) {
+                const payment = document.createElement('div');
+                payment.className = 'customer-history-muted';
+                payment.textContent = `Estimate: ₹${Number(job.estimate) || 0} · Advance: ₹${Number(job.advance) || 0} · Balance: ₹${Number(job.balance) || 0}`;
+                item.append(payment);
+            }
+            list.append(item);
+        });
+    }
+
     function openModal(jobId = null) {
         if (!syncAuthToken) return alert('Please login before editing jobs.');
         currentEditId = jobId; 
@@ -1781,6 +1863,7 @@
         photoProcessingError = null;
         document.getElementById('jobForm').reset();
         document.getElementById('formPhotosPreviewStrip').innerHTML = '';
+        document.getElementById('customerHistoryPanel').style.display = 'none';
 
         if (jobId !== null) {
             const job = jobs.find(j => j.id === jobId);
@@ -1789,6 +1872,7 @@
             document.getElementById('jobNo').value = job.jobNo || getNextJobNumber();
             document.getElementById('custName').value = job.custName;
             document.getElementById('custMobile').value = job.custMobile;
+            showCustomerHistory();
             document.getElementById('deviceModel').value = job.deviceModel;
             document.getElementById('problem').value = job.problem;
             document.getElementById('techNotes').value = job.techNotes || '';
