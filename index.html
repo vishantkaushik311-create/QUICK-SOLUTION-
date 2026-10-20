@@ -211,6 +211,39 @@
             padding: 20px; border-radius: 16px;
             width: 90%; max-width: 480px; max-height: 90vh; overflow-y: auto;
         }
+        #hostedUpdateOverlay {
+            display: none; position: fixed; inset: 0; z-index: 10000; overflow-y: auto;
+            box-sizing: border-box; padding: 28px 24px; background: #0b0b0d; color: #f5f5f7;
+            align-items: center; justify-content: center; text-align: center;
+        }
+        .hosted-update-content { width: 100%; max-width: 560px; margin: auto; }
+        .hosted-update-icon {
+            width: 112px; height: 112px; margin: 0 auto 28px; border: 4px solid #104d8b;
+            border-radius: 50%; background: #08274b; color: #1683ff;
+            display: flex; align-items: center; justify-content: center; font-size: 58px;
+            box-shadow: 0 0 40px rgba(0, 112, 255, .18);
+        }
+        .hosted-update-badge {
+            display: inline-block; margin-bottom: 20px; padding: 8px 16px; border-radius: 24px;
+            color: #ffb5b1; background: #302325; border: 1px solid #704b4e;
+            font-size: 12px; font-weight: 800; letter-spacing: .7px;
+        }
+        .hosted-update-content h2 { margin: 0; font-size: clamp(23px, 6vw, 32px); color: #fff; }
+        .hosted-update-description {
+            margin: 22px 0 26px; white-space: pre-line; line-height: 1.55;
+            color: #bec1d0; font-size: clamp(15px, 4vw, 20px);
+        }
+        .hosted-update-notes {
+            padding: 16px 18px; border: 1px solid #2b2b30; border-radius: 18px;
+            background: #1d1d20; text-align: left; color: #bec1d0; line-height: 1.5;
+        }
+        .hosted-update-notes strong { display: block; margin-bottom: 8px; color: #fff; }
+        #hostedUpdateButton {
+            width: 100%; min-height: 56px; margin-top: 28px; padding: 12px 18px;
+            border: 0; border-radius: 16px; background: #0866dc; color: #fff;
+            font-size: 16px; font-weight: 800; cursor: pointer;
+        }
+        .hosted-update-footer { margin: 14px 0 0; color: #9699a8; font-size: 12px; }
         .form-group { margin-bottom: 12px; }
         .form-group label { display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 4px; }
         .form-group input, .form-group select, .form-group textarea {
@@ -381,6 +414,30 @@
         }
 
         #printFrame { display: none; position: absolute; width: 0; height: 0; border: none; }
+        .login-panel { max-width: 340px; width: 90%; }
+        .login-panel h3 { margin: 0 0 6px; color: #fff; }
+        .login-panel p { margin: 0 0 12px; color: var(--text-sub); font-size: 12px; }
+        .lock-row { display: flex; gap: 8px; }
+        .lock-row select, .lock-row input { flex: 1; }
+        .role-hidden { display: none !important; }
+        .role-disabled { opacity: 0.45; pointer-events: none; }
+        .employee-mode .dashboard-grid,
+        .employee-mode #vEstimate,
+        .employee-mode #vAdvance,
+        .employee-mode #vBalance,
+        .employee-mode .finance-info-row,
+        .employee-mode #vQrBtn,
+        .employee-mode #vWaBtn,
+        .employee-mode #vPrintBtn,
+        .employee-mode #vPrintStickerBtn,
+        .employee-mode #vDeleteBtn,
+        .employee-mode #estimate,
+        .employee-mode #advance,
+        .employee-mode #balance { display: none !important; }
+        .employee-mode #inwardViewSection .desktop-table-wrapper th:nth-child(6),
+        .employee-mode #inwardViewSection .desktop-table-wrapper td:nth-child(6),
+        .employee-mode #readySection .desktop-table-wrapper th:nth-child(5),
+        .employee-mode #readySection .desktop-table-wrapper td:nth-child(5) { display: none; }
     </style>
 </head>
 <body>
@@ -401,6 +458,38 @@
     </div>
     <div class="sub-header" id="subHeaderTitle">Inward Repairs & Service Center</div>
     <div class="desktop-sync-notice" id="desktopSyncNotice" role="status" aria-live="polite"></div>
+
+    <div class="modal" id="loginModal" style="display:flex;">
+        <div class="modal-content login-panel">
+            <h3>Quick Solutions Access</h3>
+            <p id="loginPanelText">Laptop par backup server start karke login karein.</p>
+            <div class="form-group" id="loginServerGroup">
+                <label>Laptop server URL</label>
+                <input type="url" id="loginServerUrl" placeholder="http://192.168.1.5:8765">
+            </div>
+            <div class="form-group">
+                <label>Role</label>
+                <select id="loginRoleSelect">
+                    <option value="admin">Admin</option>
+                    <option value="employee">Employee</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>PIN</label>
+                <input type="password" id="loginPinInput" inputmode="numeric" maxlength="6" placeholder="Enter 6-digit PIN">
+            </div>
+            <button class="admin-btn" id="loginSubmitButton" onclick="attemptLogin()" style="width:100%; margin-top:8px;">Login</button>
+            <p id="loginHelpText" style="margin:10px 0 0;">First run par login karein; setup required hua to PIN setup panel khul jayega.</p>
+            <div id="serverSetupPanel" class="role-hidden" style="margin-top:14px; border-top:1px solid var(--card-border); padding-top:12px;">
+                <h4 style="margin:0 0 8px; color:var(--accent-glow);">First-time laptop setup</h4>
+                <p style="margin:0 0 10px;">Laptop server window ka one-time setup key enter karein. Dono alag PIN note karke rakhein.</p>
+                <div class="form-group"><label>One-time setup key</label><input type="text" id="setupKeyInput" autocomplete="off"></div>
+                <div class="form-group"><label>Admin PIN (6 digits)</label><input type="text" id="setupAdminPin" inputmode="numeric" maxlength="6" autocomplete="off"></div>
+                <div class="form-group"><label>Employee PIN (6 digits)</label><input type="text" id="setupEmployeePin" inputmode="numeric" maxlength="6" autocomplete="off"></div>
+                <button class="admin-btn" onclick="completeServerSetup()" style="width:100%;">Save PINs & Finish Setup</button>
+            </div>
+        </div>
+    </div>
 
     <!-- MAIN REPAIRS VIEW -->
     <div id="inwardViewSection">
@@ -634,9 +723,9 @@
             <div class="info-val" id="vTechNote" style="font-size:13px; font-weight:normal; color:#fff;"></div>
         </div>
         <div class="info-card">
-            <div class="info-row"><span class="info-label">Estimate Amount:</span><span class="info-val" id="vEstimate">₹0</span></div>
-            <div class="info-row"><span class="info-label">Advance Paid:</span><span class="info-val" id="vAdvance" style="color:var(--green-text)">₹0</span></div>
-            <div class="info-row" style="margin-bottom:0;"><span class="info-label">Balance Due:</span><span class="info-val" id="vBalance" style="color:var(--red-text); font-size:15px;">₹0</span></div>
+            <div class="info-row finance-info-row"><span class="info-label">Estimate Amount:</span><span class="info-val" id="vEstimate">₹0</span></div>
+            <div class="info-row finance-info-row"><span class="info-label">Advance Paid:</span><span class="info-val" id="vAdvance" style="color:var(--green-text)">₹0</span></div>
+            <div class="info-row finance-info-row" style="margin-bottom:0;"><span class="info-label">Balance Due:</span><span class="info-val" id="vBalance" style="color:var(--red-text); font-size:15px;">₹0</span></div>
         </div>
         <div class="card-actions" style="margin-top:15px; justify-content: space-between;">
             <a id="vCallBtn" href="#" class="btn-act btn-edit" style="text-decoration:none; text-align:center; flex:1;">📞 Call</a>
@@ -750,8 +839,34 @@
         </div>
         <button class="admin-btn" onclick="saveSyncSettings()" style="width:100%;">Save & Sync Now</button>
         <button class="settings-btn" onclick="syncNow()" style="width:100%; margin-top:8px;">Sync Now</button>
+        <button class="settings-btn" onclick="openDeviceSessions()" style="width:100%; margin-top:8px;">📱 Logged-in Devices</button>
         <button class="settings-btn" onclick="document.getElementById('syncSettingsModal').style.display='none'" style="width:100%; margin-top:8px;">Close</button>
         <div id="syncStatus" style="font-size:11px; color:var(--text-sub); margin-top:10px;"></div>
+    </div>
+</div>
+
+<div class="modal" id="deviceSessionsModal">
+    <div class="modal-content">
+        <h3 style="margin-top:0; color:#fff;">📱 Logged-in Devices</h3>
+        <p style="font-size:12px; color:var(--text-sub);">Devices with a valid login session. Last activity updates when the app syncs.</p>
+        <div id="deviceSessionsList" aria-live="polite"></div>
+        <button class="settings-btn" onclick="loadDeviceSessions()" style="width:100%; margin-top:10px;">Refresh</button>
+        <button class="settings-btn" onclick="document.getElementById('deviceSessionsModal').style.display='none'" style="width:100%; margin-top:8px;">Close</button>
+    </div>
+</div>
+
+<div id="hostedUpdateOverlay" role="alertdialog" aria-modal="true" aria-labelledby="hostedUpdateTitle">
+    <div class="hosted-update-content">
+        <div class="hosted-update-icon" aria-hidden="true">⇩</div>
+        <div class="hosted-update-badge">⚠ &nbsp; MANDATORY UPDATE REQUIRED</div>
+        <h2 id="hostedUpdateTitle">Update Required to Continue</h2>
+        <p id="hostedUpdateDescription" class="hosted-update-description"></p>
+        <div class="hosted-update-notes">
+            <strong id="hostedUpdateVersion"></strong>
+            <span id="hostedUpdateNotes"></span>
+        </div>
+        <button id="hostedUpdateButton" type="button">Update Now</button>
+        <p class="hosted-update-footer">Your settings, login status, and data are preserved.</p>
     </div>
 </div>
 
@@ -777,6 +892,18 @@
         <div class="admin-section">
             <h4 class="admin-section-title">💳 Payment Configuration</h4>
             <div class="form-group"><label>UPI ID</label><input type="text" id="adminShopUpi" placeholder="yourname@upi"></div>
+        </div>
+        <div class="admin-section">
+            <h4 class="admin-section-title">🔐 Access PINs</h4>
+            <div class="form-group">
+                <label>PIN to update</label>
+                <select id="adminPinTargetRole">
+                    <option value="employee">Employee PIN</option>
+                    <option value="admin">Admin PIN</option>
+                </select>
+            </div>
+            <div class="form-group"><label>New 6-digit PIN</label><input type="text" id="adminPinInput" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="123456"></div>
+            <button class="settings-btn" onclick="changeRolePinFromAdmin()" style="width:100%;">Update Selected PIN</button>
         </div>
         <button class="admin-btn" onclick="saveAdminSettings()" style="width:100%; margin-top:12px;">Save Admin Settings</button>
         <div class="admin-section" style="display:flex; gap:8px; flex-wrap:wrap;">
@@ -821,7 +948,7 @@
 </aside>
 
 <script>
-    const APP_VERSION = '1.1.27';
+    const APP_VERSION = '1.1.29';
 
     let shopConfig = {
         name: "Quick Solutions",
@@ -884,6 +1011,12 @@
     let dealers = JSON.parse(localStorage.getItem('qs_dealers_db') || JSON.stringify(defaultDealers));
     let cashEntries = JSON.parse(localStorage.getItem('qs_cashbook_db') || '[]');
 
+    const urlParams = new URLSearchParams(window.location.search);
+    const forcedMode = urlParams.get('mode');
+    const appMode = forcedMode || 'admin';
+    let currentUserRole = appMode === 'employee' ? 'employee' : 'admin';
+    let syncAuthToken = '';
+    let currentSessionId = '';
     let currentTab = 'inward';
     let currentEditId = null;
     let tempUploadedPhotos = [];
@@ -899,9 +1032,180 @@
     let customQrTimerInterval = null;
     let customQrTimeLeft = 120;
     let syncInProgress = false;
-    const autoSyncDesktop = location.hostname === 'vishantkaushik311-create.github.io'
+    const autoSyncDesktop = ['vishantkaushik311-create.github.io', 'localhost', '127.0.0.1'].includes(location.hostname)
         && !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
         && !(navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    function isAdminMode() {
+        return currentUserRole === 'admin';
+    }
+
+    function applyRoleAccess() {
+        const isAdmin = isAdminMode();
+        document.body.classList.toggle('employee-mode', !isAdmin);
+        const adminOnlyNodes = [
+            document.getElementById('navDealers'),
+            document.getElementById('navPricelist'),
+            document.getElementById('syncSettingsModal'),
+            document.getElementById('adminModal'),
+            document.getElementById('deviceSessionsModal')
+        ].filter(Boolean);
+
+        adminOnlyNodes.forEach(node => {
+            node.classList.toggle('role-hidden', !isAdmin);
+            if (!isAdmin) node.style.display = 'none';
+        });
+
+        const settingsButton = document.querySelector('.sidebar-nav-item[aria-label="Settings"]');
+        if (settingsButton) settingsButton.classList.toggle('role-hidden', !isAdmin);
+
+        const exportButtons = document.querySelectorAll('[onclick*="exportToCSV"], [onclick*="exportData"], [onclick*="openCashbookModal"]');
+        exportButtons.forEach(button => {
+            button.classList.toggle('role-disabled', !isAdmin);
+            if (!isAdmin) {
+                button.setAttribute('disabled', 'disabled');
+            } else {
+                button.removeAttribute('disabled');
+            }
+        });
+
+        if (!isAdmin) {
+            const appTitle = document.getElementById('subHeaderTitle');
+            if (appTitle) appTitle.innerText = 'Employee Mode · Job Entry & Updates';
+        }
+    }
+
+    function getDeviceIdentity() {
+        let deviceId = localStorage.getItem('qs_device_id');
+        if (!deviceId) {
+            deviceId = window.crypto && typeof window.crypto.randomUUID === 'function'
+                ? window.crypto.randomUUID()
+                : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+            localStorage.setItem('qs_device_id', deviceId);
+        }
+        const userAgent = navigator.userAgent || '';
+        const deviceName = /Android/i.test(userAgent) ? 'Android phone'
+            : /iPhone/i.test(userAgent) ? 'iPhone'
+            : /iPad/i.test(userAgent) ? 'iPad'
+            : `Laptop/Desktop${navigator.platform ? ` (${navigator.platform})` : ''}`;
+        return { deviceId, deviceName };
+    }
+
+    function showLoginModal(role) {
+        const loginModal = document.getElementById('loginModal');
+        const roleSelect = document.getElementById('loginRoleSelect');
+        const pinInput = document.getElementById('loginPinInput');
+        const panelText = document.getElementById('loginPanelText');
+        const serverInput = document.getElementById('loginServerUrl');
+        const adminMode = role !== 'employee';
+        if (roleSelect) roleSelect.value = role;
+        if (roleSelect) {
+            roleSelect.disabled = Boolean(forcedMode);
+            roleSelect.classList.toggle('role-hidden', Boolean(forcedMode));
+        }
+        document.getElementById('serverSetupPanel').classList.add('role-hidden');
+        ['loginServerGroup', 'loginRoleSelect', 'loginPinInput', 'loginSubmitButton', 'loginHelpText'].forEach(id => {
+            const element = document.getElementById(id);
+            (element.closest('.form-group') || element).classList.remove('role-hidden');
+        });
+        if (serverInput && !serverInput.value) serverInput.value = getSyncServerUrl() || (autoSyncDesktop ? 'http://127.0.0.1:8765' : '');
+        if (panelText) panelText.innerText = adminMode ? 'Admin access: laptop server URL aur Admin PIN enter karein.' : 'Employee access: laptop ka Wi-Fi server URL aur Employee PIN enter karein.';
+        if (loginModal) loginModal.style.display = 'flex';
+        if (pinInput) {
+            pinInput.value = '';
+            setTimeout(() => pinInput.focus(), 100);
+        }
+    }
+
+    async function attemptLogin() {
+        const roleSelect = document.getElementById('loginRoleSelect');
+        const pinInput = document.getElementById('loginPinInput');
+        const serverInput = document.getElementById('loginServerUrl');
+        const submitButton = document.getElementById('loginSubmitButton');
+        const role = forcedMode || (roleSelect ? roleSelect.value : 'admin');
+        const pin = pinInput ? pinInput.value.trim() : '';
+        const serverUrl = (serverInput ? serverInput.value : '').trim().replace(/\/+$/, '');
+        if (!/^https?:\/\/[^/]+(?::\d+)?$/.test(serverUrl)) {
+            alert('Server URL format: http://192.168.1.5:8765');
+            return;
+        }
+        if (submitButton) submitButton.disabled = true;
+        try {
+            const statusResponse = await fetch(`${serverUrl}/auth/status`, { cache: 'no-store' });
+            if (!statusResponse.ok) throw new Error(`Server returned ${statusResponse.status}`);
+            const status = await statusResponse.json();
+            if (status.setupRequired) {
+                localStorage.setItem('qs_sync_server_url', serverUrl);
+                showServerSetup();
+                return;
+            }
+            if (!/^\d{6}$/.test(pin)) {
+                alert('Please enter your 6-digit PIN.');
+                return;
+            }
+            const response = await fetch(`${serverUrl}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ role, pin, ...getDeviceIdentity() })
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || `Login failed (${response.status})`);
+            syncAuthToken = result.token;
+            currentSessionId = result.sessionId || '';
+            currentUserRole = role;
+            localStorage.setItem('qs_sync_server_url', serverUrl);
+            if (pinInput) pinInput.value = '';
+            document.getElementById('loginModal').style.display = 'none';
+            applyRoleAccess();
+            await syncNow();
+        } catch (error) {
+            alert(`Login failed: ${error.message}. Check server URL, Wi-Fi, and PIN.`);
+        } finally {
+            if (submitButton) submitButton.disabled = false;
+        }
+    }
+
+    function showServerSetup() {
+        const panel = document.getElementById('serverSetupPanel');
+        const generatedPin = () => String(crypto.getRandomValues(new Uint32Array(1))[0] % 900000 + 100000);
+        const adminPin = generatedPin();
+        document.getElementById('setupAdminPin').value = adminPin;
+        let employeePin = generatedPin();
+        while (employeePin === adminPin) employeePin = generatedPin();
+        document.getElementById('setupEmployeePin').value = employeePin;
+        panel.classList.remove('role-hidden');
+        ['loginRoleSelect', 'loginPinInput', 'loginSubmitButton', 'loginHelpText'].forEach(id => {
+            const element = document.getElementById(id);
+            (element.closest('.form-group') || element).classList.add('role-hidden');
+        });
+        document.getElementById('loginPanelText').innerText = 'Set up secure Admin and Employee access PINs.';
+    }
+
+    async function completeServerSetup() {
+        const serverUrl = (document.getElementById('loginServerUrl').value || '').trim().replace(/\/+$/, '');
+        const setupKey = document.getElementById('setupKeyInput').value.trim();
+        const adminPin = document.getElementById('setupAdminPin').value.trim();
+        const employeePin = document.getElementById('setupEmployeePin').value.trim();
+        if (!/^https?:\/\/[^/]+(?::\d+)?$/.test(serverUrl)) return alert('Enter the laptop server URL first.');
+        if (!setupKey) return alert('Enter the one-time setup key shown in the laptop server window.');
+        if (!/^\d{6}$/.test(adminPin) || !/^\d{6}$/.test(employeePin) || adminPin === employeePin) {
+            return alert('Enter two different 6-digit PINs.');
+        }
+        try {
+            const response = await fetch(`${serverUrl}/auth/setup`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ setupKey, adminPin, employeePin })
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || `Setup failed (${response.status})`);
+            localStorage.setItem('qs_sync_server_url', serverUrl);
+            alert(`Setup complete. Save these PINs securely:\nAdmin PIN: ${adminPin}\nEmployee PIN: ${employeePin}`);
+            showLoginModal(currentUserRole);
+        } catch (error) {
+            alert(`Setup failed: ${error.message}. Check the setup key and laptop server.`);
+        }
+    }
 
     async function checkForHostedUpdate() {
         const updateManifestUrl = 'https://vishantkaushik311-create.github.io/QUICK-SOLUTION-/version.json?t=' + Date.now();
@@ -910,15 +1214,49 @@
             if (!response.ok) return;
             const manifest = await response.json();
             const currentVersion = APP_VERSION;
-            if (manifest.version && manifest.version !== currentVersion && confirm(`New update ${manifest.version} available. Update now?`)) {
-                window.location.replace('https://vishantkaushik311-create.github.io/QUICK-SOLUTION-/?v=' + encodeURIComponent(manifest.version) + '&t=' + Date.now());
+            if (manifest.version && isNewerVersion(manifest.version, currentVersion)) {
+                showHostedUpdateScreen(
+                    manifest.version,
+                    manifest.releaseNotes || `Release ${manifest.version} - Updates and improvements`
+                );
             }
         } catch (error) {
             console.warn('Update check failed:', error);
         }
     }
 
+    function showHostedUpdateScreen(version, releaseNotes) {
+        const overlay = document.getElementById('hostedUpdateOverlay');
+        document.getElementById('hostedUpdateDescription').textContent =
+            `A critical update (v${version}) is required.\nYou are currently on v${APP_VERSION}.\nPlease install this update to continue using Quick Solutions.`;
+        document.getElementById('hostedUpdateVersion').textContent = `What's New in v${version}:`;
+        document.getElementById('hostedUpdateNotes').textContent = releaseNotes;
+        overlay.style.display = 'flex';
+        document.getElementById('hostedUpdateButton').onclick = () => {
+            const updateUrl = new URL('https://vishantkaushik311-create.github.io/QUICK-SOLUTION-/');
+            updateUrl.searchParams.set('v', version);
+            updateUrl.searchParams.set('t', String(Date.now()));
+            if (forcedMode) updateUrl.searchParams.set('mode', forcedMode);
+            window.location.replace(updateUrl.toString());
+        };
+    }
+
+    function isNewerVersion(candidate, current) {
+        const candidateParts = String(candidate).split('.').map(Number);
+        const currentParts = String(current).split('.').map(Number);
+        if (candidateParts.some(part => !Number.isInteger(part)) || currentParts.some(part => !Number.isInteger(part))) return false;
+        for (let index = 0; index < Math.max(candidateParts.length, currentParts.length); index++) {
+            const candidatePart = candidateParts[index] || 0;
+            const currentPart = currentParts[index] || 0;
+            if (candidatePart !== currentPart) return candidatePart > currentPart;
+        }
+        return false;
+    }
+
     function initApp() {
+        const loginModal = document.getElementById('loginModal');
+        if (loginModal) loginModal.style.display = 'flex';
+
         document.getElementById('sidebarVersionLabel').innerText = `v${APP_VERSION}`;
         document.getElementById('adminVersionLabel').innerText = `v${APP_VERSION}`;
         try {
@@ -936,9 +1274,13 @@
         if (autoSyncDesktop) {
             const notice = document.getElementById('desktopSyncNotice');
             notice.classList.add('visible');
-            setSyncStatus('Connecting to laptop backup...');
-            syncNow();
+            setSyncStatus('Admin login required to connect to laptop backup...');
         }
+        showLoginModal(currentUserRole);
+        applyRoleAccess();
+        window.setInterval(() => {
+            if (syncAuthToken && document.visibilityState === 'visible') syncNow();
+        }, 20000);
         checkForHostedUpdate();
     }
 
@@ -965,7 +1307,7 @@
     }
 
     function scheduleSync() {
-        if (syncInProgress || !getSyncServerUrl()) return;
+        if (syncInProgress || !syncAuthToken || !getSyncServerUrl()) return;
         clearTimeout(window.syncTimer);
         window.syncTimer = setTimeout(syncNow, 500);
     }
@@ -986,11 +1328,17 @@
 
     async function syncNow() {
         const baseUrl = getSyncServerUrl();
-        if (!baseUrl || syncInProgress) return;
+        if (!baseUrl || !syncAuthToken || syncInProgress) return;
         syncInProgress = true;
         setSyncStatus('Syncing...');
         try {
-            const response = await fetch(`${baseUrl}/backup`, { cache: 'no-store' });
+            const authHeaders = { Authorization: `Bearer ${syncAuthToken}` };
+            const response = await fetch(`${baseUrl}/backup`, { cache: 'no-store', headers: authHeaders });
+            if (response.status === 401) {
+                syncAuthToken = '';
+                showLoginModal(currentUserRole);
+                throw new Error('Login expired; please sign in again');
+            }
             if (!response.ok) throw new Error(`Server returned ${response.status}`);
             const remote = await response.json();
             const remoteJobs = Array.isArray(remote.jobs) ? remote.jobs : [];
@@ -1001,15 +1349,22 @@
                 else if ((job.updatedAt || 0) > (localById.get(key).updatedAt || 0)) localById.set(key, job);
             });
             jobs = Array.from(localById.values()).sort((a, b) => (b.id || 0) - (a.id || 0));
-            if (Array.isArray(remote.priceItems)) priceItems = remote.priceItems;
-            if (Array.isArray(remote.dealers)) dealers = remote.dealers;
-            if (Array.isArray(remote.cashEntries)) cashEntries = remote.cashEntries;
-            const payload = { jobs, priceItems, dealers, cashEntries, shopConfig, savedAt: Date.now() };
+            if (isAdminMode() && Array.isArray(remote.priceItems)) priceItems = remote.priceItems;
+            if (isAdminMode() && Array.isArray(remote.dealers)) dealers = remote.dealers;
+            if (isAdminMode() && Array.isArray(remote.cashEntries)) cashEntries = remote.cashEntries;
+            const payload = isAdminMode()
+                ? { jobs, priceItems, dealers, cashEntries, shopConfig, savedAt: Date.now() }
+                : { jobs };
             const upload = await fetch(`${baseUrl}/backup`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { ...authHeaders, 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
+            if (upload.status === 401) {
+                syncAuthToken = '';
+                showLoginModal(currentUserRole);
+                throw new Error('Login expired; please sign in again');
+            }
             if (!upload.ok) throw new Error(`Upload returned ${upload.status}`);
             saveAllDataLocalOnly();
             renderAll();
@@ -1019,6 +1374,86 @@
             console.warn('Local sync failed:', error);
         } finally {
             syncInProgress = false;
+        }
+    }
+
+    async function openDeviceSessions() {
+        document.getElementById('deviceSessionsModal').style.display = 'flex';
+        await loadDeviceSessions();
+    }
+
+    async function loadDeviceSessions() {
+        const list = document.getElementById('deviceSessionsList');
+        list.replaceChildren();
+        const loading = document.createElement('p');
+        loading.textContent = 'Loading devices...';
+        list.append(loading);
+        try {
+            const response = await fetch(`${getSyncServerUrl()}/auth/sessions`, {
+                cache: 'no-store',
+                headers: { Authorization: `Bearer ${syncAuthToken}` }
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || `Request failed (${response.status})`);
+            list.replaceChildren();
+            if (!Array.isArray(result.sessions) || result.sessions.length === 0) {
+                const empty = document.createElement('p');
+                empty.textContent = 'No active device sessions.';
+                list.append(empty);
+                return;
+            }
+            result.sessions.forEach(session => {
+                const card = document.createElement('div');
+                card.style.cssText = 'border:1px solid var(--card-border); border-radius:10px; padding:11px; margin:8px 0; background:var(--card-bg);';
+                const title = document.createElement('strong');
+                title.textContent = `${session.deviceName || 'Unknown device'} · ${session.role || 'unknown'}`;
+                const details = document.createElement('div');
+                details.style.cssText = 'font-size:11px; color:var(--text-sub); margin-top:5px; line-height:1.6;';
+                details.textContent = `IP: ${session.ip || 'Unknown'} · Login: ${new Date(session.loggedInAt * 1000).toLocaleString()} · Last active: ${new Date(session.lastSeen * 1000).toLocaleString()}`;
+                card.append(title, details);
+                if (session.userAgent) {
+                    const agent = document.createElement('div');
+                    agent.style.cssText = 'font-size:10px; color:var(--text-sub); margin-top:4px; overflow-wrap:anywhere;';
+                    agent.textContent = session.userAgent;
+                    card.append(agent);
+                }
+                if (session.sessionId !== currentSessionId) {
+                    const revoke = document.createElement('button');
+                    revoke.className = 'settings-btn';
+                    revoke.style.cssText = 'margin-top:8px; color:var(--red-text);';
+                    revoke.textContent = 'Log out this device';
+                    revoke.onclick = () => revokeDeviceSession(session.sessionId);
+                    card.append(revoke);
+                } else {
+                    const current = document.createElement('div');
+                    current.style.cssText = 'font-size:11px; color:var(--green-text); margin-top:7px;';
+                    current.textContent = 'This device';
+                    card.append(current);
+                }
+                list.append(card);
+            });
+        } catch (error) {
+            list.replaceChildren();
+            const failure = document.createElement('p');
+            failure.style.color = 'var(--red-text)';
+            failure.textContent = `Could not load devices: ${error.message}`;
+            list.append(failure);
+        }
+    }
+
+    async function revokeDeviceSession(sessionId) {
+        if (!confirm('Log out this device? It will need its PIN to log in again.')) return;
+        try {
+            const response = await fetch(`${getSyncServerUrl()}/auth/revoke`, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${syncAuthToken}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sessionId })
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || `Request failed (${response.status})`);
+            await loadDeviceSessions();
+        } catch (error) {
+            alert(`Could not log out device: ${error.message}`);
         }
     }
 
@@ -1035,6 +1470,7 @@
     }
 
     function openSettings() {
+        if (!isAdminMode()) return alert('Admin access required.');
         document.getElementById('syncServerUrl').value = getSyncServerUrl();
         document.getElementById('syncSettingsModal').style.display = 'flex';
     }
@@ -1060,6 +1496,7 @@
     }
 
     function switchNavTab(tab) {
+        if (!isAdminMode() && tab !== 'inward') return alert('Admin access required.');
         currentTab = tab;
         document.getElementById('inwardViewSection').style.display = (tab === 'inward') ? 'block' : 'none';
         document.getElementById('priceListViewSection').style.display = (tab === 'pricelist') ? 'block' : 'none';
@@ -1111,6 +1548,7 @@
 
     // --- 1-CLICK EXCEL / CSV EXPORT ---
     function exportToCSV() {
+        if (!isAdminMode()) return alert('Admin access required.');
         if (!jobs || jobs.length === 0) return alert("Export karne ke liye koi repair jobs data nahi hai!");
         const headers = ["Job No", "Date", "Customer Name", "Mobile Number", "Device Model", "Reported Problem", "Technician Notes", "Estimate Amount", "Advance Paid", "Balance Due", "Status"];
         const rows = jobs.map(j => [
@@ -1337,6 +1775,7 @@
     }
 
     function openModal(jobId = null) {
+        if (!syncAuthToken) return alert('Please login before editing jobs.');
         currentEditId = jobId; 
         tempUploadedPhotos = [];
         photoProcessingError = null;
@@ -1389,8 +1828,9 @@
             alert('Photo process nahi hui. Photo dobara select karke save karein.');
             return;
         }
-        const est = parseFloat(document.getElementById('estimate').value) || 0;
-        const adv = parseFloat(document.getElementById('advance').value) || 0;
+        const existingJob = currentEditId === null ? null : jobs.find(job => job.id === currentEditId);
+        const est = !isAdminMode() ? (existingJob ? existingJob.estimate || 0 : 0) : (parseFloat(document.getElementById('estimate').value) || 0);
+        const adv = !isAdminMode() ? (existingJob ? existingJob.advance || 0 : 0) : (parseFloat(document.getElementById('advance').value) || 0);
         const bal = Math.max(0, est - adv);
         const status = document.getElementById('status').value;
         const jobNoVal = document.getElementById('jobNo').value.trim() || getNextJobNumber();
@@ -1417,19 +1857,20 @@
             if (idx !== -1) {
                 const oldJob = jobs[idx];
                 const readyDate = (status === 'Ready' && oldJob.status !== 'Ready') ? Date.now() : (status === 'Ready' ? (oldJob.readyDate || Date.now()) : null);
-                jobs[idx] = { ...oldJob, ...jobData, readyDate };
+                jobs[idx] = { ...oldJob, ...jobData, readyDate, updatedAt: Date.now() };
                 savedJob = jobs[idx];
             }
         } else {
             const newJob = {
                 id: Date.now(), 
                 ...jobData,
+                updatedAt: Date.now(),
                 readyDate: status === 'Ready' ? Date.now() : null,
                 date: new Date().toLocaleDateString('en-IN')
             };
             jobs.unshift(newJob);
             savedJob = newJob;
-            if (adv > 0) cashEntries.unshift({ id: Date.now() + 1, type: 'IN', amount: adv, desc: `Advance - ${newJob.jobNo} (${newJob.custName})`, date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
+            if (isAdminMode() && adv > 0) cashEntries.unshift({ id: Date.now() + 1, type: 'IN', amount: adv, desc: `Advance - ${newJob.jobNo} (${newJob.custName})`, date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
         }
         saveAllData(); closeModal(); renderAll();
         if (currentEditId === null && savedJob && confirm('Job saved. WhatsApp par customer ko receiving receipt bhejein?')) {
@@ -1637,12 +2078,10 @@
                 <div class="card-top"><div><h3 class="job-title">${j.jobNo} - ${j.custName}</h3>${overdueBadge}</div><span class="card-badge badge-${j.status.toLowerCase().replace(' ','-')}">${j.status}</span></div>
                 <div class="detail-line">Device: <span>${j.deviceModel}</span></div>
                 <div class="detail-sub">Issue: ${j.problem || 'N/A'}</div>
-                <div class="detail-line" style="margin-top:6px;">Balance: <strong style="color:var(--red-text)">₹${j.balance}</strong></div>
+                ${isAdminMode() ? `<div class="detail-line" style="margin-top:6px;">Balance: <strong style="color:var(--red-text)">₹${j.balance}</strong></div>` : ''}
                 <div class="card-actions">
                     <button class="btn-act btn-edit" onclick="event.stopPropagation(); openModal(${j.id})">✏️ Edit</button>
-                    <button class="btn-act btn-qr" onclick="event.stopPropagation(); showQR(${j.id})">📲 QR</button>
-                    <button class="btn-act btn-wa" onclick="event.stopPropagation(); openWhatsAppReceiptMessage(${j.id})">📩 Receipt</button>
-                    <button class="btn-act btn-print" onclick="event.stopPropagation(); printTicketDirect(${j.id})">🖨️ Print</button>
+                    ${isAdminMode() ? `<button class="btn-act btn-qr" onclick="event.stopPropagation(); showQR(${j.id})">📲 QR</button><button class="btn-act btn-wa" onclick="event.stopPropagation(); openWhatsAppReceiptMessage(${j.id})">📩 Receipt</button><button class="btn-act btn-print" onclick="event.stopPropagation(); printTicketDirect(${j.id})">🖨️ Print</button>` : ''}
                 </div>
                 ${isReadySection ? `<div class="card-actions" style="margin-top:8px;"><button class="btn-act btn-wa" style="width:100%;" onclick="event.stopPropagation(); sendReadyPickupReminder(${j.id})">🔔 Send Pickup Reminder</button></div>` : ''}
             `;
@@ -1655,12 +2094,10 @@
                 <td><strong>${j.jobNo}</strong></td><td>${j.custName}<br><small>${j.custMobile}</small></td><td>${j.deviceModel}</td>
                 ${isReadySection ? '' : `<td>${j.problem || 'N/A'}</td>`}
                 <td><span class="card-badge badge-${j.status.toLowerCase().replace(' ','-')}">${j.status}</span>${isReadySection ? `<br>${overdueBadge}` : ''}</td>
-                <td style="color:var(--red-text); font-weight:bold;">₹${j.balance}</td>
+                <td style="color:var(--red-text); font-weight:bold;">${isAdminMode() ? `₹${j.balance}` : ''}</td>
                 <td>
                     <button class="btn-act btn-edit" onclick="event.stopPropagation(); openModal(${j.id})">Edit</button>
-                    <button class="btn-act btn-qr" onclick="event.stopPropagation(); showQR(${j.id})">QR</button>
-                    <button class="btn-act btn-wa" onclick="event.stopPropagation(); openWhatsAppReceiptMessage(${j.id})">Receipt</button>
-                    <button class="btn-act btn-print" onclick="event.stopPropagation(); printTicketDirect(${j.id})">Print</button>
+                    ${isAdminMode() ? `<button class="btn-act btn-qr" onclick="event.stopPropagation(); showQR(${j.id})">QR</button><button class="btn-act btn-wa" onclick="event.stopPropagation(); openWhatsAppReceiptMessage(${j.id})">Receipt</button><button class="btn-act btn-print" onclick="event.stopPropagation(); printTicketDirect(${j.id})">Print</button>` : ''}
                     ${isReadySection ? `<button class="btn-act btn-wa" style="margin-left:4px;" onclick="event.stopPropagation(); sendReadyPickupReminder(${j.id})">Remind</button>` : ''}
                 </td>
             `;
@@ -1669,8 +2106,9 @@
     }
 
     // --- CASHBOOK MODULE ---
-    function openCashbookModal() { renderCashbook(); document.getElementById('cashbookModal').style.display = 'flex'; }
+    function openCashbookModal() { if (!isAdminMode()) return alert('Admin access required.'); renderCashbook(); document.getElementById('cashbookModal').style.display = 'flex'; }
     function saveCashEntry(e) {
+        if (!isAdminMode()) return alert('Admin access required.');
         e.preventDefault();
         const type = document.getElementById('cbType').value;
         const amount = parseFloat(document.getElementById('cbAmount').value) || 0;
@@ -1697,6 +2135,7 @@
     function handleFloatingAdd() { openModal(); }
     function quickCallAction() { if (jobs.length > 0 && jobs[0].custMobile) window.location.href = `tel:${jobs[0].custMobile}`; }
     function openAdminModal() {
+        if (!isAdminMode()) return alert('Admin access required.');
         document.getElementById('adminShopName').value = shopConfig.name || '';
         document.getElementById('adminShopPhone').value = shopConfig.phone || '';
         document.getElementById('adminShopLogo').value = shopConfig.logo || '';
@@ -1704,6 +2143,7 @@
         document.getElementById('adminModal').style.display = 'flex';
     }
     function saveAdminSettings() {
+        if (!isAdminMode()) return alert('Admin access required.');
         shopConfig = {
             ...shopConfig,
             name: document.getElementById('adminShopName').value.trim() || 'Quick Solutions',
@@ -1716,8 +2156,35 @@
         saveAllData();
         alert('Admin settings saved successfully.');
     }
+
+    async function changeRolePinFromAdmin() {
+        if (!isAdminMode()) return alert('Admin access required.');
+        const baseUrl = getSyncServerUrl();
+        if (!baseUrl || !syncAuthToken) return alert('Please login to the laptop server first.');
+        const targetRole = document.getElementById('adminPinTargetRole').value;
+        const newPin = (document.getElementById('adminPinInput').value || '').trim();
+        if (!/^\d{6}$/.test(newPin)) return alert('Enter a valid 6-digit PIN.');
+        try {
+            const response = await fetch(`${baseUrl}/auth/change-pin`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${syncAuthToken}`
+                },
+                body: JSON.stringify({ targetRole, newPin })
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || `Request failed (${response.status})`);
+            document.getElementById('adminPinInput').value = '';
+            alert(`${targetRole === 'employee' ? 'Employee' : 'Admin'} PIN updated successfully.`);
+        } catch (error) {
+            alert(`PIN update failed: ${error.message}`);
+        }
+    }
+
     function closeAdminModal() { document.getElementById('adminModal').style.display = 'none'; }
     function exportData() {
+        if (!isAdminMode()) return alert('Admin access required.');
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ jobs, shopConfig, priceItems, dealers, cashEntries }));
         const a = document.createElement('a'); a.href = dataStr; a.download = `quick_solutions_backup_${new Date().toISOString().slice(0,10)}.json`;
         document.body.appendChild(a); a.click(); a.remove();
